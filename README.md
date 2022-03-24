@@ -321,8 +321,7 @@ Runs CNV callers (cnMOPs, GATK gCNV) and combines single-sample raw evidence int
 
 #### Inputs:
 * PED file (updated with [EvidenceQC](#evidence-qc) sex assignments, including sex = 0 for sex aneuploidies. Calls will not be made on sex chromosomes when sex = 0 in order to avoid generating many confusing calls or upsetting normalized copy numbers for the batch.)
-* Per-sample indexed GVCFs generated with HaplotypeCaller (`gvcfs` input), or a jointly-genotyped VCF (position-sharded, `snp_vcfs` input or `snp_vcfs_shard_list` input). The jointly-genotyped VCF may contain multi-allelic sites and indels, but only biallelic SNVs will be used by the pipeline. We recommend shards of 10 GB or less to lower compute time and resources.
-* Read count, BAF, PE, and SR files ([GatherSampleEvidence](#gather-sample-evidence))
+* Read count, BAF, PE, LD, and SR files ([GatherSampleEvidence](#gather-sample-evidence))
 * Caller VCFs ([GatherSampleEvidence](#gather-sample-evidence))
 * Contig ploidy model and gCNV model files ([gCNV training](#gcnv-training))
 

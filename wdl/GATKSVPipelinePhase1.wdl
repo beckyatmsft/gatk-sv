@@ -20,8 +20,6 @@ workflow GATKSVPipelinePhase1 {
     File ped_file
     File genome_file
     File contigs          # .fai file of included contigs
-    File reference_fasta
-    File reference_index    # Index (.fai), must be in same dir as fasta
     File reference_dict     # Dictionary (.dict), must be in same dir as fasta
 
     String sv_base_mini_docker
@@ -40,26 +38,15 @@ workflow GATKSVPipelinePhase1 {
     ## GatherBatchEvidence
     ############################################################
 
-    # PE/SR/BAF/RD files
+    # PE/SR/BAF/LD files
     Array[File?]? BAF_files
     Array[File] PE_files
     Array[File] SR_files
+    Array[File]? LD_files
+    File? ld_locs_vcf
     Array[File] counts
     File? bincov_matrix
     File? bincov_matrix_index
-    File inclusion_bed
-
-    # BAF generation if BAF_files unavailable
-    # BAF Option #1, gVCFs
-    Array[File]? gvcfs
-    File? unpadded_intervals_file
-    File? dbsnp_vcf
-    File? dbsnp_vcf_index
-    File? gvcf_gcs_project_for_requester_pays
-
-    # BAF Option #2, position-sharded VCFs
-    Array[File]? snp_vcfs
-    File? snp_vcf_header  # Only use if snp vcfs are unheadered
 
     # gCNV inputs
     File contig_ploidy_model_tar
@@ -98,7 +85,6 @@ workflow GATKSVPipelinePhase1 {
     Float? gcnv_caller_external_admixing_rate
     Boolean? gcnv_disable_annealing
 
-    Float? ploidy_sample_psi_scale
     Int ref_copy_number_autosomal_contigs
     Array[String]? allosomal_contigs
 
@@ -129,14 +115,7 @@ workflow GATKSVPipelinePhase1 {
     Int matrix_qc_distance
 
     # Runtime parameters
-    RuntimeAttr? runtime_attr_shard_baf
-    RuntimeAttr? runtime_attr_merge_baf
-    RuntimeAttr? runtime_attr_shard_pe
-    RuntimeAttr? runtime_attr_merge_pe
-    RuntimeAttr? runtime_attr_shard_sr
-    RuntimeAttr? runtime_attr_merge_sr
-
-    RuntimeAttr? runtime_attr_set_sample
+    RuntimeAttr? runtime_attr_merge_evidence
     RuntimeAttr? evidence_merging_bincov_runtime_attr # Disk space ignored, use evidence_merging_bincov_size_mb
 
     RuntimeAttr? cnmops_sample10_runtime_attr   # Memory ignored if cnmops_mem_gb_override_sample10 given
@@ -223,7 +202,6 @@ workflow GATKSVPipelinePhase1 {
     RuntimeAttr? runtime_attr_exclude_outliers
     RuntimeAttr? runtime_attr_cat_outliers
     RuntimeAttr? runtime_attr_filter_samples
-    RuntimeAttr? runtime_attr_get_male_only
 
     ############################################################
     ## Module metrics parameters for GatherBatchEvidence, ClusterBatch, GenerateBatchMetrics, FilterBatch metrics
@@ -248,19 +226,11 @@ workflow GATKSVPipelinePhase1 {
       BAF_files = BAF_files,
       PE_files = PE_files,
       SR_files = SR_files,
-      gvcfs = gvcfs,
-      unpadded_intervals_file = unpadded_intervals_file,
-      dbsnp_vcf = dbsnp_vcf,
-      dbsnp_vcf_index = dbsnp_vcf_index,
-      gvcf_gcs_project_for_requester_pays = gvcf_gcs_project_for_requester_pays,
-      ref_fasta = reference_fasta,
-      ref_fasta_index = reference_index,
+      LD_files = LD_files,
+      ld_locs_vcf = ld_locs_vcf,
       ref_dict = reference_dict,
-      snp_vcfs = snp_vcfs,
-      snp_vcf_header = snp_vcf_header,
       cytoband = cytoband,
       mei_bed = mei_bed,
-      inclusion_bed = inclusion_bed,
       counts = counts,
       bincov_matrix = bincov_matrix,
       bincov_matrix_index = bincov_matrix_index,
@@ -319,13 +289,6 @@ workflow GATKSVPipelinePhase1 {
       gatk_docker=gatk_docker,
       gcnv_gatk_docker=gcnv_gatk_docker,
       condense_counts_docker=condense_counts_docker,
-      runtime_attr_set_sample = runtime_attr_set_sample,
-      runtime_attr_shard_baf = runtime_attr_shard_baf,
-      runtime_attr_merge_baf = runtime_attr_merge_baf,
-      runtime_attr_shard_pe = runtime_attr_shard_pe,
-      runtime_attr_merge_pe = runtime_attr_merge_pe,
-      runtime_attr_shard_sr = runtime_attr_shard_sr,
-      runtime_attr_merge_sr = runtime_attr_merge_sr,
       evidence_merging_bincov_runtime_attr=evidence_merging_bincov_runtime_attr,
       cnmops_sample10_runtime_attr=cnmops_sample10_runtime_attr,
       cnmops_sample3_runtime_attr=cnmops_sample3_runtime_attr,
@@ -344,6 +307,7 @@ workflow GATKSVPipelinePhase1 {
       runtime_attr_case = runtime_attr_case,
       runtime_attr_postprocess = runtime_attr_postprocess,
       runtime_attr_explode = runtime_attr_explode,
+      runtime_attr_merge_evidence = runtime_attr_merge_evidence,
       run_module_metrics = run_batchevidence_metrics,
       primary_contigs_list = primary_contigs_list,
       sv_pipeline_base_docker = sv_pipeline_base_docker

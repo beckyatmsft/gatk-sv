@@ -16,15 +16,10 @@
   "GatherBatchEvidence.cnmops_chrom_file": "${workspace.autosome_file}",
   "GatherBatchEvidence.primary_contigs_fai": "${workspace.primary_contigs_fai}",
   "GatherBatchEvidence.genome_file": "${workspace.genome_file}",
-  "GatherBatchEvidence.inclusion_bed": "${workspace.inclusion_bed}",
   "GatherBatchEvidence.matrix_qc_distance": "1000000",
   "GatherBatchEvidence.min_svsize": "50",
   "GatherBatchEvidence.run_matrix_qc": "true",
 
-  "GatherBatchEvidence.unpadded_intervals_file" : "${workspace.unpadded_intervals_file}",
-  "GatherBatchEvidence.dbsnp_vcf" : "${workspace.dbsnp_vcf}",
-  "GatherBatchEvidence.ref_fasta": "${workspace.reference_fasta}",
-  "GatherBatchEvidence.ref_fasta_index": "${workspace.reference_index}",
   "GatherBatchEvidence.ref_dict": "${workspace.reference_dict}",
 
   "GatherBatchEvidence.ploidy_sample_psi_scale": "0.001",
@@ -61,6 +56,4 @@
   "GatherBatchEvidence.samples": "${this.samples.sample_id}",
   "GatherBatchEvidence.melt_vcfs": "${this.samples.melt_vcf}",
   "GatherBatchEvidence.wham_vcfs": "${this.samples.wham_vcf}",
-  "GatherBatchEvidence.gvcfs": "${this.samples.gvcf}",
-  "GatherBatchEvidence.gvcf_gcs_project_for_requester_pays" : "${workspace.google_project_id}"
 }

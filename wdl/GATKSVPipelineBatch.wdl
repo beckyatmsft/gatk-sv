@@ -29,7 +29,12 @@ workflow GATKSVPipelineBatch {
     Array[File]? counts_files_input
     Array[File]? pe_files_input
     Array[File]? sr_files_input
+
+    # one of these three must be supplied
+    Array[File]? ld_files_input
+    File? ld_locs_vcf       # sites vcf for locus depth and baf generation
     Array[File?]? baf_files_input
+
     Array[File]? delly_vcfs_input
     Array[File]? manta_vcfs_input
     Array[File]? melt_vcfs_input
@@ -42,16 +47,6 @@ workflow GATKSVPipelineBatch {
     Boolean use_melt = true
     Boolean use_scramble = true
     Boolean use_wham = true
-
-    # BAF Generation (if baf_files unavailable)
-    # BAF Option #1 (provide all)
-    # From single-sample gVCFS
-    Array[File]? gvcfs
-
-    # BAF Option #2
-    # From multi-sample VCFs (sharded by position)
-    Array[File]? snp_vcfs
-    File? snp_vcf_header # Required only if VCFs are unheadered
 
     # Merge contig vcfs at each stage of MakeCohortVcf for QC
     Boolean makecohortvcf_merge_cluster_vcfs = false
@@ -73,7 +68,6 @@ workflow GATKSVPipelineBatch {
     File contig_ploidy_model_tar
     Array[File] gcnv_model_tars
 
-    File? outlier_cutoff_table
     File qc_definitions
 
     # Run module metrics - all modules on by default for batch WDL
@@ -123,34 +117,39 @@ workflow GATKSVPipelineBatch {
     # Do not use
     Array[File]? NONE_ARRAY_
     String? NONE_STRING_
+    File? NONE_FILE_
   }
 
   Boolean collect_coverage_ = !defined(counts_files_input)
-  Boolean collect_pesr_ = !(defined(pe_files_input) && defined(sr_files_input))
+
+  File? ld_locs_vcf_ = if !defined(ld_files_input) && !defined(baf_files_input) then select_first([ld_locs_vcf]) else NONE_FILE_
+  Boolean collect_pesr_ = !defined(pe_files_input) || !defined(sr_files_input) || defined(ld_locs_vcf_)
 
   String? delly_docker_ = if (!defined(delly_vcfs_input) && use_delly) then delly_docker else NONE_STRING_
   String? manta_docker_ = if (!defined(manta_vcfs_input) && use_manta) then manta_docker else NONE_STRING_
   String? melt_docker_ = if (!defined(melt_vcfs_input) && use_melt) then melt_docker else NONE_STRING_
   String? scramble_docker_ = if (!defined(scramble_vcfs_input) && use_scramble) then scramble_docker else NONE_STRING_
   String? wham_docker_ = if (!defined(wham_vcfs_input) && use_wham) then wham_docker else NONE_STRING_
+  Boolean run_callers_ = defined(delly_docker_) || defined(manta_docker_) || defined(melt_docker_) || defined(scramble_docker_) || defined(wham_docker_)
 
-  Boolean run_sampleevidence = collect_coverage_ || collect_pesr_ || defined(delly_docker_) || defined(manta_docker_) || defined(melt_docker_) || defined(scramble_docker_) || defined(wham_docker_)
+  Boolean run_sampleevidence = collect_coverage_ || collect_pesr_ || run_callers_
 
   if (run_sampleevidence) {
     call sampleevidence.GatherSampleEvidenceBatch {
       input:
         bam_or_cram_files=select_first([bam_or_cram_files]),
         bam_or_cram_indexes=bam_or_cram_indexes,
+        sample_ids=samples,
         requester_pays_crams=requester_pays_crams,
+        primary_contigs_fai = primary_contigs_fai,
         collect_coverage=collect_coverage_,
         collect_pesr=collect_pesr_,
-        sample_ids=samples,
         primary_contigs_list=primary_contigs_list,
         reference_fasta=reference_fasta,
         reference_index=reference_index,
         reference_dict=reference_dict,
+        ld_locs_vcf = ld_locs_vcf_,
         run_module_metrics = run_sampleevidence_metrics,
-        primary_contigs_fai = primary_contigs_fai,
         batch = name,
         sv_pipeline_base_docker = sv_pipeline_base_docker,
         linux_docker = linux_docker,
@@ -172,6 +171,7 @@ workflow GATKSVPipelineBatch {
   Array[File] counts_files_ = if collect_coverage_ then select_all(select_first([GatherSampleEvidenceBatch.coverage_counts])) else select_first([counts_files_input])
   Array[File] pe_files_ = if collect_pesr_ then select_all(select_first([GatherSampleEvidenceBatch.pesr_disc])) else select_first([pe_files_input])
   Array[File] sr_files_ = if collect_pesr_ then select_all(select_first([GatherSampleEvidenceBatch.pesr_split])) else select_first([sr_files_input])
+  Array[File]? ld_files_ = if defined(ld_locs_vcf_) then select_all(select_first([GatherSampleEvidenceBatch.pesr_ld])) else ld_files_input
 
   if (use_delly) {
     Array[File] delly_vcfs_ = if defined(delly_vcfs_input) then select_first([delly_vcfs_input]) else select_all(select_first([GatherSampleEvidenceBatch.delly_vcf]))
@@ -193,7 +193,6 @@ workflow GATKSVPipelineBatch {
     input:
       batch=name,
       samples=samples,
-      genome_file=genome_file,
       counts=counts_files_,
       run_ploidy = false,
       sv_pipeline_docker=sv_pipeline_docker,
@@ -209,8 +208,6 @@ workflow GATKSVPipelineBatch {
       ped_file=ped_file,
       genome_file=genome_file,
       contigs=primary_contigs_fai,
-      reference_fasta=reference_fasta,
-      reference_index=reference_index,
       reference_dict=reference_dict,
       contig_ploidy_model_tar=contig_ploidy_model_tar,
       gcnv_model_tars=gcnv_model_tars,
@@ -220,14 +217,13 @@ workflow GATKSVPipelineBatch {
       bincov_matrix_index=EvidenceQC.bincov_matrix_index,
       PE_files=pe_files_,
       SR_files=sr_files_,
+      LD_files=ld_files_,
+      ld_locs_vcf=ld_locs_vcf,
       delly_vcfs=delly_vcfs_,
       manta_vcfs=manta_vcfs_,
       melt_vcfs=melt_vcfs_,
       scramble_vcfs=scramble_vcfs_,
       wham_vcfs=wham_vcfs_,
-      gvcfs=gvcfs,
-      snp_vcfs=snp_vcfs,
-      snp_vcf_header=snp_vcf_header,
       cnmops_chrom_file=autosome_file,
       cnmops_allo_file=allosome_file,
       allosome_contigs=allosome_file,

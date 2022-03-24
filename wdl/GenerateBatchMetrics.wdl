@@ -54,7 +54,6 @@ workflow GenerateBatchMetrics {
     RuntimeAttr? runtime_attr_ids_from_vcf
     RuntimeAttr? runtime_attr_subset_ped
     RuntimeAttr? runtime_attr_sample_list
-    RuntimeAttr? runtime_attr_baf_samples
     RuntimeAttr? runtime_attr_aggregate_tests
     RuntimeAttr? runtime_attr_aggregate_callers
     RuntimeAttr? runtime_attr_petest

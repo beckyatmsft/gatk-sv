@@ -5,12 +5,9 @@
   "GATKSVPipelineBatch.use_melt": "false",
   "GATKSVPipelineBatch.use_scramble": "true",
 
-  "GATKSVPipelineBatch.GATKSVPipelinePhase1.gvcf_gcs_project_for_requester_pays" : {{ cloud_env.google_project_id | tojson }},
-
   "GATKSVPipelineBatch.name": {{ test_batch.name | tojson }},
   "GATKSVPipelineBatch.ped_file": {{ test_batch.ped_file | tojson }},
   "GATKSVPipelineBatch.samples": {{ test_batch.samples | tojson }},
-  "GATKSVPipelineBatch.gvcfs": {{ test_batch.gvcfs | tojson }},
   "GATKSVPipelineBatch.gcnv_model_tars" : {{ test_batch.gcnv_model_tars | tojson }},
   "GATKSVPipelineBatch.qc_definitions" : {{ test_batch.qc_definitions | tojson }},
 
@@ -62,10 +59,7 @@
   "GATKSVPipelineBatch.EvidenceQC.wgd_scoring_mask": {{ reference_resources.wgd_scoring_mask | tojson }},
   "GATKSVPipelineBatch.EvidenceQC.run_vcf_qc": "false",
 
-  "GATKSVPipelineBatch.GATKSVPipelinePhase1.unpadded_intervals_file" : {{ reference_resources.unpadded_intervals_file | tojson }},
-  "GATKSVPipelineBatch.GATKSVPipelinePhase1.dbsnp_vcf" : {{ reference_resources.dbsnp_vcf | tojson }},
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.cnmops_exclude_list": {{ reference_resources.cnmops_exclude_list | tojson }},
-  "GATKSVPipelineBatch.GATKSVPipelinePhase1.inclusion_bed": {{ reference_resources.inclusion_bed | tojson }},
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.mei_bed": {{ reference_resources.mei_bed | tojson }},
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.cytoband": {{ reference_resources.cytobands | tojson }},
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.matrix_qc_distance": "1000000",
@@ -113,7 +107,6 @@
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.rmsk": {{ reference_resources.rmsk | tojson }},
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.segdups": {{ reference_resources.segdups | tojson }},
 
-  "GATKSVPipelineBatch.outlier_cutoff_table" : {{ test_batch.outlier_cutoff_table | tojson }},
   "GATKSVPipelineBatch.GATKSVPipelinePhase1.outlier_cutoff_nIQR": "999999",
 
   "GATKSVPipelineBatch.GenotypeBatch.n_RD_genotype_bins": "100000",

@@ -3,7 +3,7 @@ version 1.0
 import "Structs.wdl"
 
 # Workflow to run PE/SR collection on a single sample
-workflow PESRCollection {
+workflow CollectSVEvidence {
   input {
     File cram
     File cram_index
@@ -12,11 +12,12 @@ workflow PESRCollection {
     File reference_fasta
     File reference_index
     File reference_dict
+    File? ld_locs_vcf # supply this vcf of biallelic sites to generate LocusDepth file
     File? gatk_jar_override
     RuntimeAttr? runtime_attr_override
   }
 
-  call RunPESRCollection {
+  call RunCollectSVEvidence {
     input:
       cram = cram,
       cram_index = cram_index,
@@ -24,27 +25,31 @@ workflow PESRCollection {
       reference_fasta = reference_fasta,
       reference_index = reference_index,
       reference_dict = reference_dict,
+      ld_locs_vcf = ld_locs_vcf,
       gatk_docker = gatk_docker,
       gatk_jar_override = gatk_jar_override,
       runtime_attr_override = runtime_attr_override
   }
 
   output {
-    File disc_out = RunPESRCollection.disc_out
-    File disc_out_index = RunPESRCollection.disc_out_index
-    File split_out = RunPESRCollection.split_out
-    File split_out_index = RunPESRCollection.split_out_index
+    File disc_out = RunCollectSVEvidence.disc_out
+    File disc_out_index = RunCollectSVEvidence.disc_out_index
+    File split_out = RunCollectSVEvidence.split_out
+    File split_out_index = RunCollectSVEvidence.split_out_index
+    File? ld_out = RunCollectSVEvidence.ld_out
+    File? ld_out_index = RunCollectSVEvidence.ld_out_index
   }
 }
 
 # Task to run collect-pesr on a single sample
-task RunPESRCollection {
+task RunCollectSVEvidence {
   input {
     File cram
     File cram_index
     File reference_fasta
     File reference_index
     File reference_dict
+    File? ld_locs_vcf
     String sample_id
     File? gatk_jar_override
     String gatk_docker
@@ -78,23 +83,31 @@ task RunPESRCollection {
     File split_out_index = "${sample_id}.sr.txt.gz.tbi"
     File disc_out = "${sample_id}.pe.txt.gz"
     File disc_out_index = "${sample_id}.pe.txt.gz.tbi"
+    File? ld_out = "${sample_id}.ld.txt.gz"
+    File? ld_out_index = "${sample_id}.ld.txt.gz.tbi"
   }
   command <<<
 
     set -euo pipefail
 
     export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_jar_override}
+    sr_file="~{sample_id}.sr.txt.gz"
+    pe_file="~{sample_id}.pe.txt.gz"
+    ld_file="~{sample_id}.ld.txt.gz"
 
     /gatk/gatk --java-options "-Xmx~{command_mem_mb}m" CollectSVEvidence \
         -I ~{cram} \
-        --pe-file ~{sample_id}.pe.txt.gz \
-        --sr-file ~{sample_id}.sr.txt.gz \
+        --pe-file "$pe_file" \
+        --sr-file "$sr_file" \
+        ~{"--allele-count-vcf " + ld_locs_vcf + " --allele-count-file " + "$ld_file"} \
         --sample-name ~{sample_id} \
         -R ~{reference_fasta}
 
-    tabix -f -s1 -b 2 -e 2 ~{sample_id}.pe.txt.gz
-    tabix -f -s1 -b 2 -e 2 ~{sample_id}.sr.txt.gz
-
+    tabix -f -s1 -b2 -e2 "$pe_file"
+    tabix -f -s1 -b2 -e2 "$sr_file"
+    if [ -f "$ld_file" ]; then
+      tabix -f -s1 -b2 -e2 "$ld_file"
+    fi
   >>>
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])

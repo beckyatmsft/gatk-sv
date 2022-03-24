@@ -10,7 +10,6 @@ workflow Module07MinGQ {
   input {
     String sv_base_mini_docker
     String sv_pipeline_docker
-    String sv_pipeline_updates_docker
     File vcf
     File vcf_idx
     String prefix

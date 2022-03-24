@@ -9,7 +9,7 @@ import "Manta.wdl" as manta
 import "MELT.wdl" as melt
 import "Scramble.wdl" as scramble
 import "GatherSampleEvidenceMetrics.wdl" as metrics
-import "PESRCollection.wdl" as pesr
+import "CollectSVEvidence.wdl" as csve
 import "Whamg.wdl" as wham
 
 # Runs selected tools on BAM/CRAM files
@@ -53,6 +53,7 @@ workflow GatherSampleEvidence {
     File preprocessed_intervals
     Float? mem_gb_for_collect_counts
     Int? disk_space_gb_for_collect_counts
+    File? ld_locs_vcf
 
     # Delly inputs
     File? delly_exclude_intervals_file  # Required if run_delly True
@@ -70,7 +71,6 @@ workflow GatherSampleEvidence {
     Float? insert_size
     Int? read_length
     Float? coverage
-    File? metrics_intervals
     Float? pct_chimeras
     Float? total_reads
     Int? pf_reads_improper_pairs
@@ -103,8 +103,6 @@ workflow GatherSampleEvidence {
     String cloud_sdk_docker
 
     # Runtime configuration overrides
-    RuntimeAttr? runtime_attr_merge_vcfs
-    RuntimeAttr? runtime_attr_baf_sample
     RuntimeAttr? runtime_attr_cram_to_bam
     RuntimeAttr? runtime_attr_delly
     RuntimeAttr? runtime_attr_delly_gather
@@ -224,7 +222,7 @@ workflow GatherSampleEvidence {
   }
 
   if (collect_pesr) {
-    call pesr.PESRCollection {
+    call csve.CollectSVEvidence {
       input:
         cram = bam_file_,
         cram_index = bam_index_,
@@ -232,6 +230,7 @@ workflow GatherSampleEvidence {
         reference_fasta = reference_fasta,
         reference_index = reference_index,
         reference_dict = reference_dict,
+        ld_locs_vcf = ld_locs_vcf,
         gatk_docker = select_first([gatk_docker_pesr_override, gatk_docker]),
         runtime_attr_override = runtime_attr_pesr
     }
@@ -298,7 +297,7 @@ workflow GatherSampleEvidence {
   # Avoid storage costs
   if (!is_bam_) {
     if (delete_intermediate_bam) {
-      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
+      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, CollectSVEvidence.disc_out, CollectSVEvidence.split_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
       call DeleteIntermediateFiles {
         input:
           intermediates = select_all([CramToBam.bam_file, MELT.filtered_bam]),
@@ -314,8 +313,8 @@ workflow GatherSampleEvidence {
       input:
         sample = sample_id,
         coverage_counts = CollectCounts.counts,
-        pesr_disc = PESRCollection.disc_out,
-        pesr_split = PESRCollection.split_out,
+        pesr_disc = CollectSVEvidence.disc_out,
+        pesr_split = CollectSVEvidence.split_out,
         delly_vcf = Delly.vcf,
         manta_vcf = Manta.vcf,
         melt_vcf = MELT.vcf,
@@ -350,10 +349,12 @@ workflow GatherSampleEvidence {
     File? scramble_vcf = Scramble.vcf
     File? scramble_index = Scramble.index
 
-    File? pesr_disc = PESRCollection.disc_out
-    File? pesr_disc_index = PESRCollection.disc_out_index
-    File? pesr_split = PESRCollection.split_out
-    File? pesr_split_index = PESRCollection.split_out_index
+    File? pesr_disc = CollectSVEvidence.disc_out
+    File? pesr_disc_index = CollectSVEvidence.disc_out_index
+    File? pesr_split = CollectSVEvidence.split_out
+    File? pesr_split_index = CollectSVEvidence.split_out_index
+    File? pesr_ld = CollectSVEvidence.ld_out
+    File? pesr_ld_index = CollectSVEvidence.ld_out_index
 
     File? wham_vcf = Whamg.vcf
     File? wham_index = Whamg.index

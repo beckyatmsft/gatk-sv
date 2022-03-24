@@ -38,7 +38,6 @@ workflow prune_and_add_vafs {
       input:
         vcf=PruneVcf.pruned_vcf,
         vcf_idx=PruneVcf.pruned_vcf_idx,
-        contig=contig[0],
         sv_per_shard=sv_per_shard,
         prefix=prefix,
         sample_pop_assignments=sample_pop_assignments,
