@@ -305,8 +305,7 @@ task FilterVcfWithReferencePanelCalls {
   }
   command <<<
   set -euo pipefail
-  BCFTOOLS=/usr/local/bin/bcftools
-  $BCFTOOLS query -l ~{cohort_vcf} > ref_samples.list
+  bcftools query -l ~{cohort_vcf} > ref_samples.list
   maxRefSamples=$(wc -l ref_samples.list | awk '{print sprintf("%.0f", $1 * ~{default="0.01" max_ref_panel_carrier_freq})}')
 
   /opt/sv-pipeline/scripts/single_sample/apply_ref_panel_genotypes_filter.py \
@@ -315,14 +314,14 @@ task FilterVcfWithReferencePanelCalls {
     ~{case_sample_id} ~{default="0.5" required_cnv_coverage_pct} ${maxRefSamples} \
     del_dup_cpx_inv_filtered.vcf.gz
 
-  $BCFTOOLS query \
+  bcftools query \
       -i 'FILTER ~ "MULTIALLELIC"' \
       -f '%CHROM\t%POS\t%END\t%ID\t%SVLEN\n' \
       ~{cohort_vcf} | \
       awk '{OFS="\t"; $3 = $2 + $5; print}' \
       > cohort.gts.multiallelic.bed
 
-  $BCFTOOLS query \
+  bcftools query \
       -i 'FILTER ~ "MULTIALLELIC"' \
       -S ref_samples.list \
       -f '%CHROM\t%POS\t%END\t%ID\t%SVLEN\n' \
@@ -335,12 +334,12 @@ task FilterVcfWithReferencePanelCalls {
       -b cohort.gts.multiallelic.bed \
       -f ~{default="0.5" required_reciprocal_overlap_match_pct} -r -v -wa | cut -f4 > multiallelics.list
 
-  $BCFTOOLS query -i 'SVTYPE="INS"' \
+  bcftools query -i 'SVTYPE="INS"' \
       -f '%CHROM\t%POS\t%END\t%ID\t%SVLEN\n' \
       ~{cohort_vcf} | \
       awk '{OFS="\t"; $3 = $2 + $5; print}' > cohort.gts.ins.bed
 
-  $BCFTOOLS query -i "SVTYPE == 'INS' && AC >= ${maxRefSamples}" \
+  bcftools query -i "SVTYPE == 'INS' && AC >= ${maxRefSamples}" \
       -S ref_samples.list \
       -f '%CHROM\t%POS\t%END\t%ID\t%SVLEN\n' \
       ~{single_sample_vcf} | \
@@ -351,12 +350,12 @@ task FilterVcfWithReferencePanelCalls {
       -b cohort.gts.ins.bed \
       -f ~{default="0.5" required_reciprocal_overlap_match_pct} -r -v -wa | cut -f4 > case_variants_not_in_ref_panel.ins.list
 
-  $BCFTOOLS query -i 'SVTYPE="BND"' \
+  bcftools query -i 'SVTYPE="BND"' \
       -f '%CHROM\t%POS\t%INFO/CHR2\t%INFO/END\t%ID\t\n' \
       ~{cohort_vcf} | \
       awk '{OFS="\t"; print $1,$2-50,$2+50,$3,$4-50,$4+50,$5}' > cohort.gts.bnd.bedpe
 
-  $BCFTOOLS query -i "SVTYPE='BND' && AC >= ${maxRefSamples}" \
+  bcftools query -i "SVTYPE='BND' && AC >= ${maxRefSamples}" \
       -S ref_samples.list \
       -f '%CHROM\t%POS\t%INFO/CHR2\t%INFO/END\t%ID\t\n' \
       ~{single_sample_vcf} | \
@@ -369,7 +368,7 @@ task FilterVcfWithReferencePanelCalls {
 
   cp case_variants_not_in_ref_panel.ins.list case_variants_not_in_ref_panel.list
 
-  $BCFTOOLS filter \
+  bcftools filter \
       -e 'ID=@case_variants_not_in_ref_panel.list || ( SVTYPE="BND" && ID!=@case_bnds_to_keep.list ) || (FILTER ~ "MULTIALLELIC" && ID!=@multiallelics.list )' \
       -s REF_PANEL_GENOTYPES \
       -m + \
