@@ -64,6 +64,9 @@ workflow GatherSampleEvidence {
     Float? manta_jobs_per_cpu
     Int? manta_mem_gb_per_job
 
+    # PESR inputs
+    File ld_locs_vcf
+
     # Melt inputs
     File? melt_standard_vcf_header # required if run_melt True
     File? melt_metrics_intervals
@@ -232,6 +235,7 @@ workflow GatherSampleEvidence {
         reference_fasta = reference_fasta,
         reference_index = reference_index,
         reference_dict = reference_dict,
+        ld_locs_vcf = ld_locs_vcf,
         gatk_docker = select_first([gatk_docker_pesr_override, gatk_docker]),
         runtime_attr_override = runtime_attr_pesr
     }
@@ -298,7 +302,7 @@ workflow GatherSampleEvidence {
   # Avoid storage costs
   if (!is_bam_) {
     if (delete_intermediate_bam) {
-      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
+      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, PESRCollection.ld_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
       call DeleteIntermediateFiles {
         input:
           intermediates = select_all([CramToBam.bam_file, MELT.filtered_bam]),
@@ -354,6 +358,8 @@ workflow GatherSampleEvidence {
     File? pesr_disc_index = PESRCollection.disc_out_index
     File? pesr_split = PESRCollection.split_out
     File? pesr_split_index = PESRCollection.split_out_index
+    File? pesr_ld = PESRCollection.ld_out
+    File? pesr_ld_index = PESRCollection.ld_out_index
 
     File? wham_vcf = Whamg.vcf
     File? wham_index = Whamg.index

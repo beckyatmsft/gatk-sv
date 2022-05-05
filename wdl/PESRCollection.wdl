@@ -8,11 +8,12 @@ workflow PESRCollection {
     File cram
     File cram_index
     String sample_id
-    String gatk_docker
     File reference_fasta
     File reference_index
     File reference_dict
+    File ld_locs_vcf
     File? gatk_jar_override
+    String gatk_docker
     RuntimeAttr? runtime_attr_override
   }
 
@@ -24,8 +25,9 @@ workflow PESRCollection {
       reference_fasta = reference_fasta,
       reference_index = reference_index,
       reference_dict = reference_dict,
-      gatk_docker = gatk_docker,
+      ld_locs_vcf = ld_locs_vcf,
       gatk_jar_override = gatk_jar_override,
+      gatk_docker = gatk_docker,
       runtime_attr_override = runtime_attr_override
   }
 
@@ -34,6 +36,8 @@ workflow PESRCollection {
     File disc_out_index = RunPESRCollection.disc_out_index
     File split_out = RunPESRCollection.split_out
     File split_out_index = RunPESRCollection.split_out_index
+    File ld_out = RunPESRCollection.ld_out
+    File ld_out_index = RunPESRCollection.ld_out_index
   }
 }
 
@@ -42,10 +46,11 @@ task RunPESRCollection {
   input {
     File cram
     File cram_index
+    String sample_id
     File reference_fasta
     File reference_index
     File reference_dict
-    String sample_id
+    File ld_locs_vcf
     File? gatk_jar_override
     String gatk_docker
     RuntimeAttr? runtime_attr_override
@@ -78,6 +83,8 @@ task RunPESRCollection {
     File split_out_index = "${sample_id}.sr.txt.gz.tbi"
     File disc_out = "${sample_id}.pe.txt.gz"
     File disc_out_index = "${sample_id}.pe.txt.gz.tbi"
+    File ld_out = "${sample_id}.ld.txt.gz"
+    File ld_out_index = "${sample_id}.ld.txt.gz.tbi"
   }
   command <<<
 
@@ -85,15 +92,22 @@ task RunPESRCollection {
 
     export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_jar_override}
 
+    sr_file="~{sample_id}.sr.txt.gz"
+    pe_file="~{sample_id}.pe.txt.gz"
+    ld_file="~{sample_id}.ld.txt.gz"
+
     /gatk/gatk --java-options "-Xmx~{command_mem_mb}m" CollectSVEvidence \
         -I ~{cram} \
-        --pe-file ~{sample_id}.pe.txt.gz \
-        --sr-file ~{sample_id}.sr.txt.gz \
+        --sr-file "$sr_file" \
+        --pe-file "$pe_file" \
+        --allele-count-file "$ld_file" \
+        --allele-count-vcf ~{ld_locs_vcf} \
         --sample-name ~{sample_id} \
         -R ~{reference_fasta}
 
-    tabix -f -s1 -b 2 -e 2 ~{sample_id}.pe.txt.gz
-    tabix -f -s1 -b 2 -e 2 ~{sample_id}.sr.txt.gz
+    tabix -f -s1 -b2 -e2 "$sr_file"
+    tabix -f -s1 -b2 -e2 "$pe_file"
+    tabix -f -s1 -b2 -e2 "$ld_file"
 
   >>>
   runtime {
@@ -105,6 +119,5 @@ task RunPESRCollection {
     preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
     maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
   }
-
 }
 
