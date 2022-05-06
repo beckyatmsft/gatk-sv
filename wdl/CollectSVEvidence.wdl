@@ -3,7 +3,7 @@ version 1.0
 import "Structs.wdl"
 
 # Workflow to run PE/SR collection on a single sample
-workflow PESRCollection {
+workflow CollectSVEvidence {
   input {
     File cram
     File cram_index
@@ -17,7 +17,7 @@ workflow PESRCollection {
     RuntimeAttr? runtime_attr_override
   }
 
-  call RunPESRCollection {
+  call RunCollectSVEvidence {
     input:
       cram = cram,
       cram_index = cram_index,
@@ -32,17 +32,17 @@ workflow PESRCollection {
   }
 
   output {
-    File disc_out = RunPESRCollection.disc_out
-    File disc_out_index = RunPESRCollection.disc_out_index
-    File split_out = RunPESRCollection.split_out
-    File split_out_index = RunPESRCollection.split_out_index
-    File ld_out = RunPESRCollection.ld_out
-    File ld_out_index = RunPESRCollection.ld_out_index
+    File disc_out = RunCollectSVEvidence.disc_out
+    File disc_out_index = RunCollectSVEvidence.disc_out_index
+    File split_out = RunCollectSVEvidence.split_out
+    File split_out_index = RunCollectSVEvidence.split_out_index
+    File ld_out = RunCollectSVEvidence.ld_out
+    File ld_out_index = RunCollectSVEvidence.ld_out_index
   }
 }
 
 # Task to run collect-pesr on a single sample
-task RunPESRCollection {
+task RunCollectSVEvidence {
   input {
     File cram
     File cram_index

@@ -9,7 +9,7 @@ import "Manta.wdl" as manta
 import "MELT.wdl" as melt
 import "Scramble.wdl" as scramble
 import "GatherSampleEvidenceMetrics.wdl" as metrics
-import "PESRCollection.wdl" as pesr
+import "CollectSVEvidence.wdl" as coev
 import "Whamg.wdl" as wham
 
 # Runs selected tools on BAM/CRAM files
@@ -227,7 +227,7 @@ workflow GatherSampleEvidence {
   }
 
   if (collect_pesr) {
-    call pesr.PESRCollection {
+    call coev.CollectSVEvidence {
       input:
         cram = bam_file_,
         cram_index = bam_index_,
@@ -302,7 +302,7 @@ workflow GatherSampleEvidence {
   # Avoid storage costs
   if (!is_bam_) {
     if (delete_intermediate_bam) {
-      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, PESRCollection.ld_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
+      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, CollectSVEvidence.disc_out, CollectSVEvidence.split_out, CollectSVEvidence.ld_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
       call DeleteIntermediateFiles {
         input:
           intermediates = select_all([CramToBam.bam_file, MELT.filtered_bam]),
@@ -318,8 +318,8 @@ workflow GatherSampleEvidence {
       input:
         sample = sample_id,
         coverage_counts = CollectCounts.counts,
-        pesr_disc = PESRCollection.disc_out,
-        pesr_split = PESRCollection.split_out,
+        pesr_disc = CollectSVEvidence.disc_out,
+        pesr_split = CollectSVEvidence.split_out,
         delly_vcf = Delly.vcf,
         manta_vcf = Manta.vcf,
         melt_vcf = MELT.vcf,
@@ -354,12 +354,12 @@ workflow GatherSampleEvidence {
     File? scramble_vcf = Scramble.vcf
     File? scramble_index = Scramble.index
 
-    File? pesr_disc = PESRCollection.disc_out
-    File? pesr_disc_index = PESRCollection.disc_out_index
-    File? pesr_split = PESRCollection.split_out
-    File? pesr_split_index = PESRCollection.split_out_index
-    File? pesr_ld = PESRCollection.ld_out
-    File? pesr_ld_index = PESRCollection.ld_out_index
+    File? pesr_disc = CollectSVEvidence.disc_out
+    File? pesr_disc_index = CollectSVEvidence.disc_out_index
+    File? pesr_split = CollectSVEvidence.split_out
+    File? pesr_split_index = CollectSVEvidence.split_out_index
+    File? pesr_ld = CollectSVEvidence.ld_out
+    File? pesr_ld_index = CollectSVEvidence.ld_out_index
 
     File? wham_vcf = Whamg.vcf
     File? wham_index = Whamg.index
