@@ -2,8 +2,8 @@
   "GATKSVPipelineBatch.use_delly": "false",
   "GATKSVPipelineBatch.use_manta": "true",
   "GATKSVPipelineBatch.use_wham": "true",
-  "GATKSVPipelineBatch.use_melt": "true",
-  "GATKSVPipelineBatch.use_scramble": "false",
+  "GATKSVPipelineBatch.use_melt": "false",
+  "GATKSVPipelineBatch.use_scramble": "true",
 
   "GATKSVPipelineBatch.name": {{ test_batch.name | tojson }},
   "GATKSVPipelineBatch.ped_file": {{ test_batch.ped_file | tojson }},
@@ -15,8 +15,9 @@
   "GATKSVPipelineBatch.counts_files_input": {{ test_batch.counts | tojson }},
   "GATKSVPipelineBatch.pe_files_input": {{ test_batch.PE_files | tojson }},
   "GATKSVPipelineBatch.sr_files_input": {{ test_batch.SR_files | tojson }},
+  "GATKSVPipelineBatch.ld_files_input": {{ test_batch.LD_files | tojson }},
   "GATKSVPipelineBatch.manta_vcfs_input": {{ test_batch.manta_vcfs | tojson }},
-  "GATKSVPipelineBatch.melt_vcfs_input": {{ test_batch.melt_vcfs | tojson }},
+  "GATKSVPipelineBatch.scramble_vcfs_input": {{ test_batch.scramble_vcfs | tojson }},
   "GATKSVPipelineBatch.wham_vcfs_input": {{ test_batch.wham_vcfs | tojson }},
 
   "GATKSVPipelineBatch.melt_docker" : {{ dockers.melt_docker | tojson }},
