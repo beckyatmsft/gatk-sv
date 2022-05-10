@@ -103,10 +103,11 @@ task MergeEvidence {
   command <<<
 
     set -euo pipefail
+    ulimit -n 100000
 
     mv ~{write_lines(files)} evidence.list
     mv ~{write_lines(samples)} samples.list
-    awk 'BEGIN{FS=OFS="\t"}{print "@SQ\tSN:"$1, "LN:"$2}' genome_file > dictionary
+    awk 'BEGIN{FS=OFS="\t"}{print "@SQ\tSN:"$1, "LN:"$2}' ~{genome_file} > dictionary
 
     /gatk/gatk PrintSVEvidence -F evidence.list --sample-names samples.list --dictionary dictionary -O "~{batch}.~{evidence}.txt.gz"
 
@@ -154,10 +155,11 @@ task LDtoBAF {
   command <<<
 
     set -euo pipefail
+    ulimit -n 100000
 
     mv ~{write_lines(LD_files)} inputs.list
     mv ~{write_lines(samples)} samples.list
-    awk 'BEGIN{FS=OFS="\t"}{print "@SQ\tSN:"$1, "LN:"$2}' genome_file > dictionary
+    awk 'BEGIN{FS=OFS="\t"}{print "@SQ\tSN:"$1, "LN:"$2}' ~{genome_file} > dictionary
 
     /gatk/gatk LocusDepthtoBAF -F inputs.list --sample-names samples.list --dictionary dictionary --baf-sites-vcf "~{ld_locs_vcf}" -O "~{batch}.baf.txt.gz"
 
