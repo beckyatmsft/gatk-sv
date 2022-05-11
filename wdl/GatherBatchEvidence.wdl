@@ -241,7 +241,7 @@ workflow GatherBatchEvidence {
       SR_files = all_SR_files,
       LD_files = all_LD_files,
       ld_locs_vcf = dbsnp_vcf,
-      genome_file = genome_file,
+      reference_dict = ref_dict,
       batch = batch,
       gatk_docker = gatk_docker,
       runtime_attr_override = runtime_attr_bem

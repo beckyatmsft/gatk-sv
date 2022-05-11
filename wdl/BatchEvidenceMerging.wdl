@@ -10,7 +10,7 @@ workflow BatchEvidenceMerging {
     Array[File] SR_files
     Array[File] LD_files
     File ld_locs_vcf
-    File genome_file
+    File reference_dict
     String batch
     String gatk_docker
     RuntimeAttr? runtime_attr_override
@@ -22,7 +22,7 @@ workflow BatchEvidenceMerging {
       batch = batch,
       evidence = "sr",
       samples = samples,
-      genome_file = genome_file,
+      reference_dict = reference_dict,
       gatk_docker = gatk_docker,
       runtime_attr_override = runtime_attr_override
   }
@@ -33,7 +33,7 @@ workflow BatchEvidenceMerging {
       batch = batch,
       evidence = "pe",
       samples = samples,
-      genome_file = genome_file,
+      reference_dict = reference_dict,
       gatk_docker = gatk_docker,
       runtime_attr_override = runtime_attr_override
   }
@@ -45,7 +45,7 @@ workflow BatchEvidenceMerging {
         batch = batch,
         evidence = "baf",
         samples = samples,
-        genome_file = genome_file,
+        reference_dict = reference_dict,
         gatk_docker = gatk_docker,
         runtime_attr_override = runtime_attr_override
     }
@@ -57,7 +57,7 @@ workflow BatchEvidenceMerging {
         ld_locs_vcf = ld_locs_vcf,
         batch = batch,
         samples = samples,
-        genome_file = genome_file,
+        reference_dict = reference_dict,
         gatk_docker = gatk_docker,
         runtime_attr_override = runtime_attr_override
     }
@@ -79,16 +79,18 @@ task MergeEvidence {
     String batch
     String evidence
     Array[String] samples
-    File genome_file
+    File reference_dict
     String gatk_docker
     RuntimeAttr? runtime_attr_override
   }
 
   Int disk_size = 10 + ceil(size(files, "GiB") * 2)
+  Int java_heap_size_mb = round(1024.0 * length(files) / 50.0 + 512.0)
+  Float mem_size_gb = (java_heap_size_mb + 512) / 1024.0
 
   RuntimeAttr default_attr = object {
     cpu_cores: 1,
-    mem_gb: 3.75,
+    mem_gb: mem_size_gb,
     disk_gb: disk_size,
     boot_disk_gb: 10,
     preemptible_tries: 3,
@@ -107,9 +109,12 @@ task MergeEvidence {
 
     mv ~{write_lines(files)} evidence.list
     mv ~{write_lines(samples)} samples.list
-    awk 'BEGIN{FS=OFS="\t"}{print "@SQ\tSN:"$1, "LN:"$2}' ~{genome_file} > dictionary
 
-    /gatk/gatk PrintSVEvidence -F evidence.list --sample-names samples.list --dictionary dictionary -O "~{batch}.~{evidence}.txt.gz"
+    awk '/txt\.gz$/' evidence.list | while read fil; do
+      tabix -f -s1 -b2 -e2 $fil
+    done
+
+    /gatk/gatk --java-options "-Xmx~{java_heap_size_mb}m" PrintSVEvidence -F evidence.list --sample-names samples.list --sequence-dictionary ~{reference_dict} -O "~{batch}.~{evidence}.txt.gz"
 
     tabix -f -s1 -b2 -e2 "~{batch}.~{evidence}.txt.gz"
 
@@ -131,16 +136,18 @@ task LDtoBAF {
     File ld_locs_vcf
     String batch
     Array[String] samples
-    File genome_file
+    File reference_dict
     String gatk_docker
     RuntimeAttr? runtime_attr_override
   }
 
   Int disk_size = 10 + ceil(size(LD_files, "GiB") * 2)
+  Int java_heap_size_mb = round(1024.0 * length(LD_files) / 50.0 + 512.0)
+  Float mem_size_gb = (java_heap_size_mb + 512) / 1024.0
 
   RuntimeAttr default_attr = object {
     cpu_cores: 1,
-    mem_gb: 3.75,
+    mem_gb: mem_size_gb,
     disk_gb: disk_size,
     boot_disk_gb: 10,
     preemptible_tries: 3,
@@ -159,9 +166,12 @@ task LDtoBAF {
 
     mv ~{write_lines(LD_files)} inputs.list
     mv ~{write_lines(samples)} samples.list
-    awk 'BEGIN{FS=OFS="\t"}{print "@SQ\tSN:"$1, "LN:"$2}' ~{genome_file} > dictionary
 
-    /gatk/gatk LocusDepthtoBAF -F inputs.list --sample-names samples.list --dictionary dictionary --baf-sites-vcf "~{ld_locs_vcf}" -O "~{batch}.baf.txt.gz"
+    awk '/txt\.gz$/' inputs.list | while read fil; do
+      tabix -f -s1 -b2 -e2 $fil
+    done
+
+    /gatk/gatk --java-options "-Xmx~{java_heap_size_mb}m" LocusDepthtoBAF -F inputs.list --sample-names samples.list --sequence-dictionary ~{reference_dict} --baf-sites-vcf "~{ld_locs_vcf}" -O "~{batch}.baf.txt.gz"
 
     tabix -f -s1 -b2 -e2 "~{batch}.baf.txt.gz"
 
