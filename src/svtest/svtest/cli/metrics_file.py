@@ -84,16 +84,11 @@ def write_metrics(metrics):
         sys.stdout.write("%s\t%s\n" % (key, str(metrics[key])))
 
 
-def write_metrics(metrics):
-    for key in metrics:
-        sys.stdout.write("%s\t%s\n" % (key, str(metrics[key])))
-
-
 def get_metrics(df, contigs, feature_cols, common):
-    #tu.test_sets_equal(df["chrom"], contigs, item_str="contig",
-    #                   name_a="metric file contigs", name_b="contigs list")
-    #tu.test_sets_equal(df.columns, EXPECTED_COLUMNS, item_str="column",
-    #                   name_a="metric file header", name_b="expected columns")
+    tu.test_sets_equal(df["chrom"], contigs, item_str="contig",
+                       name_a="metric file contigs", name_b="contigs list")
+    tu.test_sets_equal(df.columns, EXPECTED_COLUMNS, item_str="column",
+                       name_a="metric file header", name_b="expected columns")
     metric_means = get_column_means(df, feature_cols)
     metric_empty_counts = get_columns_num_empty(df, feature_cols)
 
