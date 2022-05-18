@@ -63,7 +63,7 @@ workflow ExpansionHunter {
         input:
             vcfs_gz = expanionHunter.vcf_gz,
             jsons = expanionHunter.json,
-            overlapping_reads = expanionHunter.overlapping_reads,
+            overlapping_reads = expanionHunter.overlapping_reads_run,
             timings = expanionHunter.timing,
             output_prefix = sample_id,
             expansion_hunter_docker = expansion_hunter_docker
@@ -72,7 +72,7 @@ workflow ExpansionHunter {
     output {
         File json = ConcatEHOutputs.json
         File vcf_gz = ConcatEHOutputs.vcf_gz
-        File overlapping_reads = ConcatEHOutputs.overlapping_reads
+        File overlapping_reads_concatEH = ConcatEHOutputs.overlapping_reads_concat
         File timing = ConcatEHOutputs.timing
     }
 }
@@ -93,7 +93,7 @@ task RunExpansionHunter {
     output {
         File json = "${sample_id}.json"
         File vcf_gz = "${sample_id}.vcf.gz"
-        File overlapping_reads = "${sample_id}_realigned.bam"
+        File overlapping_reads_run = "${sample_id}_realigned.bam"
         File timing = "${sample_id}_timing.tsv"
     }
 
@@ -173,7 +173,7 @@ task ConcatEHOutputs {
     output {
         File json = "${output_prefix}.json"
         File vcf_gz = "${output_prefix}.vcf.gz"
-        File overlapping_reads = "${output_prefix}.bam"
+        File overlapping_reads_concat = "${output_prefix}.bam"
         File timing = "${output_prefix}_timing.tsv"
     }
 
