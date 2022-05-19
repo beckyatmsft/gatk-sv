@@ -152,9 +152,8 @@ task RunExpansionHunter {
         docker: expansion_hunter_docker
         cpu: runtime_attr.cpu_cores
         memory: runtime_attr.mem_gb + " GiB"
-        disks: "local-disk " + runtime_attr.disk_gb + " HDD"
-        bootDiskSizeGb: runtime_attr.boot_disk_gb
-        preemptible: runtime_attr.preemptible_tries
+        disk: runtime_attr.disk_gb + " GB"
+        preemptible: true
         maxRetries: runtime_attr.max_retries
     }
 }
@@ -215,9 +214,8 @@ task ConcatEHOutputs {
         docker: expansion_hunter_docker
         cpu: runtime_attr.cpu_cores
         memory: runtime_attr.mem_gb + " GiB"
-        disks: "local-disk " + runtime_attr.disk_gb + " HDD"
-        bootDiskSizeGb: runtime_attr.boot_disk_gb
-        preemptible: runtime_attr.preemptible_tries
+        disk: runtime_attr.disk_gb + " GB"
+        preemptible: true
         maxRetries: runtime_attr.max_retries
     }
 }
