@@ -2,7 +2,15 @@
 
 version 1.0
 
-import "Structs.wdl"
+struct RuntimeAttr {
+    Float? mem_gb
+    Int? cpu_cores
+    Int? disk_gb
+    Int? boot_disk_gb
+    Boolean? preemptible_tries
+    Int? max_retries
+}
+
 
 struct FilenamePostfixes {
     String locus
@@ -136,8 +144,8 @@ task RunExpansionHunter {
         cpu_cores: 1,
         mem_gb: 4,
         boot_disk_gb: 10,
-        preemptible_tries: 3,
-        max_retries: 1,
+        preemptible_tries: 0,
+        max_retries: 3,
         disk_gb: 10 + ceil(size([
             bam_or_cram,
             bam_or_cram_index,
