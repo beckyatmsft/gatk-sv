@@ -144,7 +144,7 @@ task RunExpansionHunter {
         cpu_cores: 1,
         mem_gb: 4,
         boot_disk_gb: 10,
-        preemptible_tries: 0,
+        preemptible: true,
         max_retries: 3,
         disk_gb: 10 + ceil(size([
             bam_or_cram,
@@ -205,8 +205,8 @@ task ConcatEHOutputs {
         cpu_cores: 1,
         mem_gb: 4,
         boot_disk_gb: 10,
-        preemptible_tries: 3,
-        max_retries: 1,
+        preemptible: true,
+        max_retries: 3,
         disk_gb: 10 +
             (2 * ceil(
                 size(vcfs_gz, "GiB") +
