@@ -400,9 +400,9 @@ task GetBamID {
     docker: samtools_cloud_docker
     memory: "1 GB"
     cpu: "1"
-    disks: "local-disk 10 HDD"
-    preemptible: "3"
-    maxRetries: "1"
+    disk: "10 GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -426,9 +426,9 @@ task InternalSampleID {
     docker: sv_pipeline_docker
     memory: "1 GB"
     cpu: "1"
-    disks: "local-disk 10 HDD"
-    preemptible: "3"
-    maxRetries: "1"
+    disk: "10 GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -460,8 +460,8 @@ task DeleteIntermediateFiles {
     docker: cloud_sdk_docker
     memory: "1 GB"
     cpu: "1"
-    disks: "local-disk 10 HDD"
-    preemptible: "3"
-    maxRetries: "1"
+    disk: "10 GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
