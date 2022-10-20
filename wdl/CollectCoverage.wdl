@@ -65,8 +65,8 @@ task CollectCounts {
   runtime {
     docker: gatk_docker
     memory: machine_mem_gb + " GiB"
-    disk: 10 GB
-    cpu: 1
+    disk: "10 GB"
+    cpu: "1"
     preemptible: true
     maxRetries: 3
   }
