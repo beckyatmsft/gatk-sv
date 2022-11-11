@@ -49,7 +49,7 @@ workflow GatherSampleEvidenceBatch {
 
     # Melt inputs
     File? melt_standard_vcf_header # required if use_melt True
-    File? melt_metrics_intervals
+    # File? melt_metrics_intervals
     Array[Float]? insert_size
     Array[Int]? read_length
     Array[Float]? coverage
@@ -70,7 +70,7 @@ workflow GatherSampleEvidenceBatch {
     File? baseline_delly_vcf  # baseline files are optional for metrics workflow
     File? baseline_manta_vcf
     File? baseline_wham_vcf
-    File? baseline_melt_vcf
+    # File? baseline_melt_vcf
     File? baseline_scramble_vcf
 
     # Docker
@@ -79,7 +79,7 @@ workflow GatherSampleEvidenceBatch {
     String samtools_cloud_docker
     String? delly_docker
     String? manta_docker
-    String? melt_docker
+    # String? melt_docker
     String? scramble_docker
     String? wham_docker
     String gatk_docker
@@ -94,9 +94,9 @@ workflow GatherSampleEvidenceBatch {
     RuntimeAttr? runtime_attr_delly
     RuntimeAttr? runtime_attr_delly_gather
     RuntimeAttr? runtime_attr_manta
-    RuntimeAttr? runtime_attr_melt_coverage
-    RuntimeAttr? runtime_attr_melt_metrics
-    RuntimeAttr? runtime_attr_melt
+    # RuntimeAttr? runtime_attr_melt_coverage
+    # RuntimeAttr? runtime_attr_melt_metrics
+    # RuntimeAttr? runtime_attr_melt
     RuntimeAttr? runtime_attr_scramble
     RuntimeAttr? runtime_attr_pesr
     RuntimeAttr? runtime_attr_wham
@@ -140,7 +140,7 @@ workflow GatherSampleEvidenceBatch {
         manta_jobs_per_cpu = manta_jobs_per_cpu,
         manta_mem_gb_per_job = manta_mem_gb_per_job,
         melt_standard_vcf_header = melt_standard_vcf_header,
-        melt_metrics_intervals = melt_metrics_intervals,
+        # melt_metrics_intervals = melt_metrics_intervals,
         insert_size = if defined(insert_size) then select_first([insert_size])[i] else NONE_FLOAT_,
         read_length = if defined(read_length) then select_first([read_length])[i] else NONE_INT_,
         coverage = if defined(coverage) then select_first([coverage])[i] else NONE_FLOAT_,
@@ -153,7 +153,7 @@ workflow GatherSampleEvidenceBatch {
         sv_pipeline_base_docker = sv_pipeline_base_docker,
         baseline_delly_vcf = baseline_delly_vcf,
         baseline_manta_vcf = baseline_manta_vcf,
-        baseline_melt_vcf = baseline_melt_vcf,
+        # baseline_melt_vcf = baseline_melt_vcf,
         baseline_scramble_vcf = baseline_scramble_vcf,
         baseline_wham_vcf = baseline_wham_vcf,
         sv_pipeline_docker = sv_pipeline_docker,
@@ -161,7 +161,7 @@ workflow GatherSampleEvidenceBatch {
         samtools_cloud_docker = samtools_cloud_docker,
         delly_docker = delly_docker,
         manta_docker = manta_docker,
-        melt_docker = melt_docker,
+        # melt_docker = melt_docker,
         scramble_docker = scramble_docker,
         wham_docker = wham_docker,
         gatk_docker = gatk_docker,
@@ -173,9 +173,9 @@ workflow GatherSampleEvidenceBatch {
         runtime_attr_delly = runtime_attr_delly,
         runtime_attr_delly_gather = runtime_attr_delly_gather,
         runtime_attr_manta = runtime_attr_manta,
-        runtime_attr_melt_coverage = runtime_attr_melt_coverage,
-        runtime_attr_melt_metrics = runtime_attr_melt_metrics,
-        runtime_attr_melt = runtime_attr_melt,
+        # runtime_attr_melt_coverage = runtime_attr_melt_coverage,
+        # runtime_attr_melt_metrics = runtime_attr_melt_metrics,
+        # runtime_attr_melt = runtime_attr_melt,
         runtime_attr_scramble = runtime_attr_scramble,
         runtime_attr_pesr = runtime_attr_pesr,
         runtime_attr_wham = runtime_attr_wham,
@@ -205,11 +205,11 @@ workflow GatherSampleEvidenceBatch {
     Array[File?] manta_vcf = GatherSampleEvidence.manta_vcf
     Array[File?] manta_index = GatherSampleEvidence.manta_index
 
-    Array[File?] melt_vcf = GatherSampleEvidence.melt_vcf
-    Array[File?] melt_index = GatherSampleEvidence.melt_index
-    Array[Float?] melt_coverage = GatherSampleEvidence.melt_coverage
-    Array[Int?] melt_read_length = GatherSampleEvidence.melt_read_length
-    Array[Float?] melt_insert_size = GatherSampleEvidence.melt_insert_size
+    # Array[File?] melt_vcf = GatherSampleEvidence.melt_vcf
+    # Array[File?] melt_index = GatherSampleEvidence.melt_index
+    # Array[Float?] melt_coverage = GatherSampleEvidence.melt_coverage
+    # Array[Int?] melt_read_length = GatherSampleEvidence.melt_read_length
+    # Array[Float?] melt_insert_size = GatherSampleEvidence.melt_insert_size
 
     Array[File?] scramble_vcf = GatherSampleEvidence.scramble_vcf
     Array[File?] scramble_index = GatherSampleEvidence.scramble_index

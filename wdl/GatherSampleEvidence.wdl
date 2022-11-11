@@ -6,7 +6,7 @@ import "CramToBam.wdl" as ctb
 import "CramToBam.ReviseBase.wdl" as ctb_revise
 import "Delly.wdl" as delly
 import "Manta.wdl" as manta
-import "MELT.wdl" as melt
+# import "MELT.wdl" as melt
 import "Scramble.wdl" as scramble
 import "GatherSampleEvidenceMetrics.wdl" as metrics
 import "PESRCollection.wdl" as pesr
@@ -66,7 +66,7 @@ workflow GatherSampleEvidence {
 
     # Melt inputs
     File? melt_standard_vcf_header # required if run_melt True
-    File? melt_metrics_intervals
+    # File? melt_metrics_intervals
     Float? insert_size
     Int? read_length
     Float? coverage
@@ -85,7 +85,7 @@ workflow GatherSampleEvidence {
     File? baseline_delly_vcf  # baseline files are optional for metrics workflow
     File? baseline_manta_vcf
     File? baseline_wham_vcf
-    File? baseline_melt_vcf
+    # File? baseline_melt_vcf
     File? baseline_scramble_vcf
 
     # Docker
@@ -94,7 +94,7 @@ workflow GatherSampleEvidence {
     String samtools_cloud_docker
     String? delly_docker
     String? manta_docker
-    String? melt_docker
+    # String? melt_docker
     String? scramble_docker
     String? wham_docker
     String gatk_docker
@@ -109,9 +109,9 @@ workflow GatherSampleEvidence {
     RuntimeAttr? runtime_attr_delly
     RuntimeAttr? runtime_attr_delly_gather
     RuntimeAttr? runtime_attr_manta
-    RuntimeAttr? runtime_attr_melt_coverage
-    RuntimeAttr? runtime_attr_melt_metrics
-    RuntimeAttr? runtime_attr_melt
+    # RuntimeAttr? runtime_attr_melt_coverage
+    # RuntimeAttr? runtime_attr_melt_metrics
+    # RuntimeAttr? runtime_attr_melt
     RuntimeAttr? runtime_attr_scramble
     RuntimeAttr? runtime_attr_pesr
     RuntimeAttr? runtime_attr_wham
@@ -128,7 +128,7 @@ workflow GatherSampleEvidence {
 
   Boolean run_delly = defined(delly_docker)
   Boolean run_manta = defined(manta_docker)
-  Boolean run_melt = defined(melt_docker)
+  # Boolean run_melt = defined(melt_docker)
   Boolean run_scramble = defined(scramble_docker)
   Boolean run_wham = defined(wham_docker)
 
@@ -237,33 +237,33 @@ workflow GatherSampleEvidence {
     }
   }
 
-  if (run_melt) {
-    call melt.MELT {
-      input:
-        bam_or_cram_file = bam_file_,
-        bam_or_cram_index = bam_index_,
-        counts_file = select_first([CollectCounts.counts]),
-        sample_id = sample_id,
-        reference_fasta = reference_fasta,
-        reference_index = reference_index,
-        reference_version = reference_version,
-        melt_standard_vcf_header = select_first([melt_standard_vcf_header]),
-        insert_size = insert_size,
-        read_length = read_length,
-        coverage = coverage,
-        wgs_metrics_intervals = melt_metrics_intervals,
-        pct_chimeras = pct_chimeras,
-        total_reads = total_reads,
-        pf_reads_improper_pairs = pf_reads_improper_pairs,
-        runtime_attr_coverage = runtime_attr_melt_coverage,
-        runtime_attr_metrics = runtime_attr_melt_metrics,
-        samtools_cloud_docker = samtools_cloud_docker,
-        gatk_docker = gatk_docker,
-        genomes_in_the_cloud_docker = genomes_in_the_cloud_docker,
-        melt_docker = select_first([melt_docker]),
-        runtime_attr_melt = runtime_attr_melt
-    }
-  }
+  # if (run_melt) {
+  #   call melt.MELT {
+  #     input:
+  #       bam_or_cram_file = bam_file_,
+  #       bam_or_cram_index = bam_index_,
+  #       counts_file = select_first([CollectCounts.counts]),
+  #       sample_id = sample_id,
+  #       reference_fasta = reference_fasta,
+  #       reference_index = reference_index,
+  #       reference_version = reference_version,
+  #       melt_standard_vcf_header = select_first([melt_standard_vcf_header]),
+  #       insert_size = insert_size,
+  #       read_length = read_length,
+  #       coverage = coverage,
+  #       wgs_metrics_intervals = melt_metrics_intervals,
+  #       pct_chimeras = pct_chimeras,
+  #       total_reads = total_reads,
+  #       pf_reads_improper_pairs = pf_reads_improper_pairs,
+  #       runtime_attr_coverage = runtime_attr_melt_coverage,
+  #       runtime_attr_metrics = runtime_attr_melt_metrics,
+  #       samtools_cloud_docker = samtools_cloud_docker,
+  #       gatk_docker = gatk_docker,
+  #       genomes_in_the_cloud_docker = genomes_in_the_cloud_docker,
+  #       melt_docker = select_first([melt_docker]),
+  #       runtime_attr_melt = runtime_attr_melt
+  #   }
+  # }
 
   if (run_scramble) {
     call scramble.Scramble {
@@ -298,10 +298,12 @@ workflow GatherSampleEvidence {
   # Avoid storage costs
   if (!is_bam_) {
     if (delete_intermediate_bam) {
-      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
+      # Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, MELT.vcf, Scramble.vcf, Whamg.vcf])
+      Array[File] ctb_dummy = select_all([CollectCounts.counts, Delly.vcf, Manta.vcf, PESRCollection.disc_out, PESRCollection.split_out, Scramble.vcf, Whamg.vcf])
       call DeleteIntermediateFiles {
         input:
-          intermediates = select_all([CramToBam.bam_file, MELT.filtered_bam]),
+          # intermediates = select_all([CramToBam.bam_file, MELT.filtered_bam]),
+          intermediates = select_all([CramToBam.bam_file]),
           dummy = ctb_dummy,
           cloud_sdk_docker = cloud_sdk_docker
       }
@@ -318,12 +320,12 @@ workflow GatherSampleEvidence {
         pesr_split = PESRCollection.split_out,
         delly_vcf = Delly.vcf,
         manta_vcf = Manta.vcf,
-        melt_vcf = MELT.vcf,
+        # melt_vcf = MELT.vcf,
         scramble_vcf = Scramble.vcf,
         wham_vcf = Whamg.vcf,
         baseline_delly_vcf = baseline_delly_vcf,
         baseline_manta_vcf = baseline_manta_vcf,
-        baseline_melt_vcf = baseline_melt_vcf,
+        # baseline_melt_vcf = baseline_melt_vcf,
         baseline_scramble_vcf = baseline_scramble_vcf,
         baseline_wham_vcf = baseline_wham_vcf,
         contig_list = primary_contigs_list,
@@ -341,11 +343,11 @@ workflow GatherSampleEvidence {
     File? manta_vcf = Manta.vcf
     File? manta_index = Manta.index
 
-    File? melt_vcf = MELT.vcf
-    File? melt_index = MELT.index
-    Float? melt_coverage = MELT.coverage_out
-    Int? melt_read_length = MELT.read_length_out
-    Float? melt_insert_size = MELT.insert_size_out
+    # File? melt_vcf = MELT.vcf
+    # File? melt_index = MELT.index
+    # Float? melt_coverage = MELT.coverage_out
+    # Int? melt_read_length = MELT.read_length_out
+    # Float? melt_insert_size = MELT.insert_size_out
 
     File? scramble_vcf = Scramble.vcf
     File? scramble_index = Scramble.index
@@ -398,9 +400,9 @@ task GetBamID {
   >>>
   runtime {
     docker: samtools_cloud_docker
-    memory: "1 GB"
-    cpu: "1"
-    disk: "10 GB"
+    memory: 1 + " GB"
+    cpu: 1
+    disk: 10 + " GB"
     preemptible: true
     maxRetries: 3
   }
@@ -424,9 +426,9 @@ task InternalSampleID {
   >>>
   runtime {
     docker: sv_pipeline_docker
-    memory: "1 GB"
-    cpu: "1"
-    disk: "10 GB"
+    memory: 1 + " GB"
+    cpu: 1
+    disk: 10 + " GB"
     preemptible: true
     maxRetries: 3
   }
@@ -458,9 +460,9 @@ task DeleteIntermediateFiles {
   >>>
   runtime {
     docker: cloud_sdk_docker
-    memory: "1 GB"
-    cpu: "1"
-    disk: "10 GB"
+    memory: 1 + " GB"
+    cpu: 1
+    disk: 10 + " GB"
     preemptible: true
     maxRetries: 3
   }

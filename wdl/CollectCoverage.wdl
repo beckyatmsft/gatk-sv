@@ -65,8 +65,8 @@ task CollectCounts {
   runtime {
     docker: gatk_docker
     memory: machine_mem_gb + " GiB"
-    disk: "10 GB"
-    cpu: "1"
+    disk: 10 + " GB"
+    cpu: 1
     preemptible: true
     maxRetries: 3
   }
@@ -90,12 +90,11 @@ task CondenseReadCounts {
   }
 
   RuntimeAttr default_attr = object {
-    cpu_cores: 1,
-    mem_gb: 1.0,
-    disk_gb: 10,
-    boot_disk_gb: 10,
-    preemptible_tries: 3,
-    max_retries: 1
+    cpu: 1,
+    memory: 1 + " GB",
+    disk: 10 + " GB",
+    preemptible: true,
+    max_retries: 3
   }
   RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
 
@@ -140,12 +139,11 @@ task CountsToIntervals {
   }
 
   RuntimeAttr default_attr = object {
-    cpu_cores: 1,
-    mem_gb: 1.0,
-    disk_gb: 10,
-    boot_disk_gb: 10,
-    preemptible_tries: 3,
-    max_retries: 1
+    cpu: 1,
+    memory: 1 + " GB",
+    disk: 10 + " GB",
+    preemptible: true,
+    max_retries: 3
   }
   RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
 
