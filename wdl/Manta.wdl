@@ -112,10 +112,7 @@ task RunManta {
   RuntimeAttr default_attr = object {
     cpu_cores: num_cpu_use,
     mem_gb: mem_size_gb, 
-    disk_gb: vm_disk_size,
-    boot_disk_gb: 10,
-    preemptible_tries: 3,
-    max_retries: 1
+    disk_gb: vm_disk_size
   }
   RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
 
