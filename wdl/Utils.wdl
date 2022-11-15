@@ -136,7 +136,7 @@ task RunQC {
   runtime {
     cpu: 1
     memory: "~{mem_gib} GiB"
-    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
+    disk: "10 GB"
     docker: sv_pipeline_base_docker
     preemptible: true
     maxRetries: 3
