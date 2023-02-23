@@ -62,7 +62,6 @@ We still encourage members of the community to adapt GATK-SV for non-GCP backend
 
 ### Data:
 * Illumina short-read whole-genome CRAMs or BAMs, aligned to hg38 with [bwa-mem](https://github.com/lh3/bwa). BAMs must also be indexed.
-* Indexed GVCFs produced by GATK HaplotypeCaller, or a jointly genotyped VCF.
 * Family structure definitions file in [PED format](https://gatk.broadinstitute.org/hc/en-us/articles/360035531972-PED-Pedigree-format). Sex aneuploidies (detected in [EvidenceQC](#evidence-qc)) should be entered as sex = 0.
 
 #### <a name="sample-exclusion">Sample Exclusion</a>
@@ -81,13 +80,11 @@ Sample IDs should not:
 
 The same requirements apply to family IDs in the PED file, as well as batch IDs and the cohort ID provided as workflow inputs.
 
-Sample IDs are provided to [GatherSampleEvidence](#gather-sample-evidence) directly and need not match sample names from the BAM/CRAM headers or GVCFs. `GetSampleID.wdl` can be used to fetch BAM sample IDs and also generates a set of alternate IDs that are considered safe for this pipeline; alternatively, [this script](https://github.com/talkowski-lab/gnomad_sv_v3/blob/master/sample_id/convert_sample_ids.py) transforms a list of sample IDs to fit these requirements. Currently, sample IDs can be replaced again in [GatherBatchEvidence](#gather-batch-evidence). 
+Sample IDs are provided to [GatherSampleEvidence](#gather-sample-evidence) directly and need not match sample names from the BAM/CRAM headers. `GetSampleID.wdl` can be used to fetch BAM sample IDs and also generates a set of alternate IDs that are considered safe for this pipeline; alternatively, [this script](https://github.com/talkowski-lab/gnomad_sv_v3/blob/master/sample_id/convert_sample_ids.py) transforms a list of sample IDs to fit these requirements. Currently, sample IDs can be replaced again in [GatherBatchEvidence](#gather-batch-evidence). 
 
 The following inputs will need to be updated with the transformed sample IDs:
 * Sample ID list for [GatherSampleEvidence](#gather-sample-evidence) or [GatherBatchEvidence](#gather-batch-evidence)
 * PED file
-
-If using a SNP VCF in [GatherBatchEvidence](#gather-batch-evidence), it does not need to be re-headered; simply provide the `vcf_samples` argument.
 
 
 ## <a name="citation">Citation</a>
@@ -130,7 +127,6 @@ The input values are provided only as an example and are not publicly accessible
 **Important**: The following parameters must be set when certain input data is in requester pays (RP) buckets:
 
 * `GATKSVPipelineSingleSample.requester_pays_cram` and `GATKSVPipelineBatch.GatherSampleEvidenceBatch.requester_pays_crams` - set to `True` if inputs are CRAM format and in an RP bucket, otherwise `False`.
-* `GATKSVPipelineBatch.GATKSVPipelinePhase1.gcs_project_for_requester_pays` - set to your Google Cloud Project ID if gVCFs are in an RP bucket, otherwise omit this parameter.
 
 #### Execution
 We recommend running the pipeline on a dedicated [Cromwell](https://github.com/broadinstitute/cromwell) server with a [cromshell](https://github.com/broadinstitute/cromshell) client. A batch run can be started with the following commands:
@@ -151,7 +147,7 @@ where `cromwell_config.json` is a Cromwell [workflow options file](https://cromw
 
 ## <a name="overview">Pipeline Overview</a>
 The pipeline consists of a series of modules that perform the following:
-* [GatherSampleEvidence](#gather-sample-evidence): SV evidence collection, including calls from a configurable set of algorithms (Delly, Manta, MELT, and Wham), read depth (RD), split read positions (SR), and discordant pair positions (PE).
+* [GatherSampleEvidence](#gather-sample-evidence): SV evidence collection, including calls from a configurable set of algorithms (Manta, MELT, and Wham), read depth (RD), split read positions (SR), and discordant pair positions (PE).
 * [EvidenceQC](#evidence-qc): Dosage bias scoring and ploidy estimation
 * [GatherBatchEvidence](#gather-batch-evidence): Copy number variant calling using cn.MOPS and GATK gCNV; B-allele frequency (BAF) generation; call and evidence aggregation
 * [ClusterBatch](#cluster-batch): Variant clustering
@@ -182,7 +178,7 @@ Repository structure:
 
 
 ## <a name="cohort-mode">Cohort mode</a>
-A minimum cohort size of 100 with roughly equal number of males and females is recommended. For modest cohorts (~100-500 samples), the pipeline can be run as a single batch using `GATKSVPipelineBatch.wdl`.
+A minimum cohort size of 100 is required, and a roughly equal number of males and females is recommended. For modest cohorts (~100-500 samples), the pipeline can be run as a single batch using `GATKSVPipelineBatch.wdl`.
 
 For larger cohorts, samples should be split up into batches of about 100-500 samples. Refer to the [Batching](#batching) section for further guidance on creating batches.
 
@@ -203,7 +199,7 @@ For larger cohorts, samples should be split up into batches of about 100-500 sam
 
 
 ## <a name="sample-sample-mode">Single-sample mode</a>
-`GATKSVPipelineSingleSample.wdl` runs the pipeline on a single sample using a fixed reference panel. An example run with reference panel containing 156 samples from the [NYGC 1000G Terra workspace](https://app.terra.bio/#workspaces/anvil-datastorage/1000G-high-coverage-2019) can be found in `inputs/build/NA12878/test` after [building inputs](#Building inputs)).
+`GATKSVPipelineSingleSample.wdl` runs the pipeline on a single sample using a fixed reference panel. An example run with reference panel containing 156 samples from the [NYGC 1000G Terra workspace](https://app.terra.bio/#workspaces/anvil-datastorage/1000G-high-coverage-2019) can be found in `inputs/build/NA12878/test` after [building inputs](#building-inputs)).
 
 ## <a name="gcnv-training-overview">gCNV Training</a>
 Both the cohort and single-sample modes use the GATK gCNV depth calling pipeline, which requires a [trained model](#gcnv-training) as input. The samples used for training should be technically homogeneous and similar to the samples to be processed (i.e. same sample type, library prep protocol, sequencer, sequencing center, etc.). The samples to be processed may comprise all or a subset of the training set. For small, relatively homogenous cohorts, a single gCNV model is usually sufficient. If a cohort contains multiple data sources, we recommend training a separate model for each [batch](#batching) or group of batches with similar dosage score (WGD). The model may be trained on all or a subset of the samples to which it will be applied; a reasonable default is 100 randomly-selected samples from the batch (the random selection can be done as part of the workflow by specifying a number of samples to the `n_samples_subsample` input parameter in `/wdl/TrainGCNV.wdl`).
@@ -251,7 +247,7 @@ The following sections briefly describe each module and highlights inter-depende
 ## <a name="gather-sample-evidence">GatherSampleEvidence</a>
 *Formerly Module00a*
 
-Runs raw evidence collection on each sample with the following SV callers: Manta, Wham, and/or MELT. Delly can be enabled but is no longer officially supported. For guidance on pre-filtering prior to `GatherSampleEvidence`, refer to the [Sample Exclusion](#sample-exclusion) section.
+Runs raw evidence collection on each sample with the following SV callers: Manta, Wham, and/or MELT. For guidance on pre-filtering prior to `GatherSampleEvidence`, refer to the [Sample Exclusion](#sample-exclusion) section.
 
 Note: a list of sample IDs must be provided. Refer to the [sample ID requirements](#sampleids) for specifications of allowable sample IDs. IDs that do not meet these requirements may cause errors.
 
@@ -259,7 +255,7 @@ Note: a list of sample IDs must be provided. Refer to the [sample ID requirement
 * Per-sample BAM or CRAM files aligned to hg38. Index files (`.bai`) must be provided if using BAMs.
 
 #### Outputs:
-* Caller VCFs (Delly, Manta, MELT, and/or Wham)
+* Caller VCFs (Manta, MELT, and/or Wham)
 * Binned read counts file
 * Split reads (SR) file
 * Discordant read pairs (PE) file
@@ -292,6 +288,7 @@ The purpose of sample filtering at this stage after EvidenceQC is to prevent ver
 * Look at the dosage score (WGD) distribution and check that it is centered around 0 (the distribution of WGD for PCR- samples is expected to be slightly lower than 0, and the distribution of WGD for PCR+ samples is expected to be slightly greater than 0. Refer to the [gnomAD-SV paper](https://doi.org/10.1038/s41586-020-2287-8) for more information on WGD score). Optionally filter outliers.
 * Look at the low outliers for each SV caller (samples with much lower than typical numbers of SV calls per contig for each caller). An empty low outlier file means there were no outliers below the median and no filtering is necessary. Check that no samples had zero calls.
 * Look at the high outliers for each SV caller and optionally filter outliers; samples with many more SV calls than average may be poor quality.
+* Remove samples with autosomal aneuploidies based on the per-batch binned coverage plots of each chromosome.
 
 
 ## <a name="gcnv-training">TrainGCNV</a>
@@ -321,8 +318,7 @@ Runs CNV callers (cnMOPs, GATK gCNV) and combines single-sample raw evidence int
 
 #### Inputs:
 * PED file (updated with [EvidenceQC](#evidence-qc) sex assignments, including sex = 0 for sex aneuploidies. Calls will not be made on sex chromosomes when sex = 0 in order to avoid generating many confusing calls or upsetting normalized copy numbers for the batch.)
-* Per-sample indexed GVCFs generated with HaplotypeCaller (`gvcfs` input), or a jointly-genotyped VCF (position-sharded, `snp_vcfs` input or `snp_vcfs_shard_list` input). The jointly-genotyped VCF may contain multi-allelic sites and indels, but only biallelic SNVs will be used by the pipeline. We recommend shards of 10 GB or less to lower compute time and resources.
-* Read count, BAF, PE, and SR files ([GatherSampleEvidence](#gather-sample-evidence))
+* Read count, BAF, PE, SD, and SR files ([GatherSampleEvidence](#gather-sample-evidence))
 * Caller VCFs ([GatherSampleEvidence](#gather-sample-evidence))
 * Contig ploidy model and gCNV model files ([gCNV training](#gcnv-training))
 
@@ -375,7 +371,7 @@ Generates variant metrics for filtering.
 Filters poor quality variants and filters outlier samples. This workflow can be run all at once with the WDL at `wdl/FilterBatch.wdl`, or it can be run in three steps to enable tuning of outlier filtration cutoffs. The three subworkflows are:
 1. FilterBatchSites: Per-batch variant filtration
 2. PlotSVCountsPerSample: Visualize SV counts per sample per type to help choose an IQR cutoff for outlier filtering, and preview outlier samples for a given cutoff
-3. FilterBatchSamples: Per-batch outlier sample filtration; provide an appropriate `outlier_cutoff_nIQR` based on the SV count plots and outlier previews from step 2.
+3. FilterBatchSamples: Per-batch outlier sample filtration; provide an appropriate `outlier_cutoff_nIQR` based on the SV count plots and outlier previews from step 2. Note that not removing high outliers can result in increased compute cost and a higher false positive rate in later steps.
 
 #### Prerequisites:
 * [GenerateBatchMetrics](#generate-batch-metrics)

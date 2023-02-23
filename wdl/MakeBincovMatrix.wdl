@@ -144,7 +144,7 @@ task SetBins {
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
-    disk: runtime_attr.disk_gb + " GB"
+    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     docker: sv_base_mini_docker
     preemptible: true
     maxRetries: 3
@@ -209,7 +209,7 @@ task MakeBincovMatrixColumns {
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
-    disk: runtime_attr.disk_gb + " GB"
+    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     docker: sv_base_mini_docker
     preemptible: true
     maxRetries: 3
@@ -233,7 +233,7 @@ task ZPaste {
   # Some memory is used up by the named pipes. Not a lot, but allocate in case the batch is huge:
   Float mem_gb = mem_overhead_gb + 0.003 * length(column_files)
   RuntimeAttr default_attr = object {
-    cpu_cores: 1,
+    cpu_cores: 4,
     mem_gb: mem_gb,
     disk_gb: disk_gb,
     boot_disk_gb: 10,
@@ -257,19 +257,19 @@ task ZPaste {
     while read -r COLUMN_FILE; do
       FIFO=$(printf "column_file_fifos/%08d" $FILE_NUM)
       mkfifo "$FIFO"
-      bgzip -cd "$COLUMN_FILE" > "$FIFO" &
+      bgzip -@$(nproc) -cd "$COLUMN_FILE" > "$FIFO" &
       ((++FILE_NUM))
     done < ~{write_lines(column_files)}
 
     # paste unzipped files and compress
-    paste column_file_fifos/* | bgzip -c > "~{matrix_file_name}"
+    paste column_file_fifos/* | bgzip -@$(nproc) -c > "~{matrix_file_name}"
     tabix -p bed "~{matrix_file_name}"
   >>>
 
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
-    disk: runtime_attr.disk_gb + " GB"
+    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     docker: sv_base_docker
     preemptible: true
     maxRetries: 3
