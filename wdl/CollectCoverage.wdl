@@ -90,9 +90,9 @@ task CondenseReadCounts {
   }
 
   RuntimeAttr default_attr = object {
-    cpu: 1,
-    memory: 1 + " GB",
-    disk: 10 + " GB",
+    cpu_cores: 1,
+    mem_gb: 1,
+    disk_gb: 10,
     preemptible: true,
     max_retries: 3
   }
@@ -139,9 +139,9 @@ task CountsToIntervals {
   }
 
   RuntimeAttr default_attr = object {
-    cpu: 1,
-    memory: 1 + " GB",
-    disk: 10 + " GB",
+    cpu_cores: 1,
+    mem_gb: 1,
+    disk_gb: 10,
     preemptible: true,
     max_retries: 3
   }

@@ -35,12 +35,11 @@ task CatMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: linux_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -75,12 +74,11 @@ task StandardizeVCF {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -125,12 +123,11 @@ task VCFMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -165,12 +162,11 @@ task BAFMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -205,12 +201,11 @@ task SRMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -245,12 +240,11 @@ task PEMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -282,12 +276,11 @@ task CountsMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -322,12 +315,11 @@ task BincovMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -366,12 +358,11 @@ task MedcovMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -415,12 +406,11 @@ task MergedDepthMetricsWithBaseline {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -453,12 +443,11 @@ task MergedDepthMetricsWithoutBaseline {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -494,12 +483,11 @@ task MetricsFileMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -538,12 +526,11 @@ task CutoffAndOutlierMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -573,12 +560,11 @@ task GenotypingCutoffMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -610,12 +596,11 @@ task IdListMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: linux_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -652,11 +637,10 @@ task PlotMetrics {
   >>>
   runtime {
     memory: select_first([runtime_override.mem_gb, runtime_default.mem_gb]) + " GB"
-    disks: "local-disk " + select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_base_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }

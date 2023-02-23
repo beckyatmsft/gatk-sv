@@ -386,11 +386,10 @@ task DetermineGermlineContigPloidyCohortMode {
     runtime {
       cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
       memory: mem_gb + " GiB"
-      disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
-      bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
+      disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
       docker: gatk_docker
-      preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-      maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+      preemptible: true
+      maxRetries: 3
     }
 
     output {
@@ -563,11 +562,10 @@ task GermlineCNVCallerCohortMode {
     runtime {
       cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
       memory: mem_gb + " GiB"
-      disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
-      bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
+      disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
       docker: gatk_docker
-      preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-      maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+      preemptible: true
+      maxRetries: 3
     }
 
     output {

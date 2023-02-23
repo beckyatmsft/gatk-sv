@@ -21,8 +21,6 @@ workflow CNMOPS {
     String prefix
     Int? min_size
     Boolean? stitch_and_clean_large_events = false
-    Float? mem_gb_override_sample10
-    Float? mem_gb_override_sample3
     String linux_docker
     String sv_pipeline_docker
     String cnmops_docker
@@ -45,7 +43,6 @@ workflow CNMOPS {
         ref_dict = ref_dict,
         bincov_matrix = bincov_matrix,
         bincov_matrix_index = bincov_matrix_index,
-        mem_gb_override = mem_gb_override_sample10,
         cnmops_docker = cnmops_docker,
         runtime_attr_override = runtime_attr_sample10
     }
@@ -60,7 +57,6 @@ workflow CNMOPS {
         ref_dict = ref_dict,
         bincov_matrix = bincov_matrix,
         bincov_matrix_index = bincov_matrix_index,
-        mem_gb_override = mem_gb_override_sample3,
         cnmops_docker = cnmops_docker,
         runtime_attr_override = runtime_attr_sample3
     }
@@ -77,7 +73,6 @@ workflow CNMOPS {
         ref_dict = ref_dict,
         bincov_matrix = bincov_matrix,
         bincov_matrix_index = bincov_matrix_index,
-        mem_gb_override = mem_gb_override_sample10,
         cnmops_docker = cnmops_docker,
         runtime_attr_override = runtime_attr_sample10
     }
@@ -92,7 +87,6 @@ workflow CNMOPS {
         ref_dict = ref_dict,
         bincov_matrix = bincov_matrix,
         bincov_matrix_index = bincov_matrix_index,
-        mem_gb_override = mem_gb_override_sample3,
         cnmops_docker = cnmops_docker,
         runtime_attr_override = runtime_attr_sample3
     }
@@ -108,7 +102,6 @@ workflow CNMOPS {
       ref_dict = ref_dict,
       bincov_matrix = bincov_matrix,
       bincov_matrix_index = bincov_matrix_index,
-      mem_gb_override = mem_gb_override_sample10,
       cnmops_docker = cnmops_docker,
       runtime_attr_override = runtime_attr_sample10
   }
@@ -123,7 +116,6 @@ workflow CNMOPS {
       ref_dict = ref_dict,
       bincov_matrix = bincov_matrix,
       bincov_matrix_index = bincov_matrix_index,
-      mem_gb_override = mem_gb_override_sample3,
       cnmops_docker = cnmops_docker,
       runtime_attr_override = runtime_attr_sample3
   }
@@ -191,11 +183,10 @@ task GetPed {
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
-    disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
-    bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
+    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     docker: linux_docker
-    preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-    maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -282,11 +273,10 @@ task CleanCNMops {
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
-    disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
-    bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
+    disk: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     docker: sv_pipeline_docker
-    preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-    maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+    preemptible: true
+    maxRetries: 3
   }
 
 }
@@ -301,7 +291,6 @@ task CNSampleNormal {
     File ref_dict
     File bincov_matrix
     File bincov_matrix_index
-    Float? mem_gb_override
     String cnmops_docker
     RuntimeAttr? runtime_attr_override
   }
@@ -373,10 +362,9 @@ task CNSampleNormal {
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: mem_gb_used + " GiB"
-    disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
-    bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
+    disk: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     docker: cnmops_docker
-    preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-    maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+    preemptible: true
+    maxRetries: 3
   }
 }
