@@ -25,10 +25,9 @@ task ZcatCompressedFiles {
   # be held in memory or disk while working, potentially in a form that takes up more space)
   Float input_size = size(shards, "GB")
   Float compression_factor = 5.0
-  Float base_disk_gb = 5.0
   RuntimeAttr runtime_default = object {
     mem_gb: 2.0,
-    disk_gb: ceil(base_disk_gb + input_size * if do_filter then 2.0 + compression_factor else 2.0),
+    disk_gb: ceil(10.0 + input_size * if do_filter then 2.0 + compression_factor else 2.0),
     cpu_cores: 1,
     preemptible_tries: 3,
     max_retries: 1,
@@ -85,10 +84,9 @@ task CatUncompressedFiles {
   # when filtering/sorting/etc, memory usage will likely go up (much of the data will have to
   # be held in memory or disk while working, potentially in a form that takes up more space)
   Float input_size = size(shards, "GB")
-  Float base_disk_gb = 5.0
   RuntimeAttr runtime_default = object {
     mem_gb: 2.0,
-    disk_gb: ceil(base_disk_gb + input_size * (if do_filter then 3.0 else 2.0)),
+    disk_gb: ceil(10.0 + input_size * (if do_filter then 3.0 else 2.0)),
     cpu_cores: 1,
     preemptible_tries: 3,
     max_retries: 1,
@@ -207,19 +205,18 @@ task ConcatVcfs {
   String outfile_name = outfile_prefix + ".vcf.gz"
   String allow_overlaps_flag = if allow_overlaps then "--allow-overlaps" else ""
   String naive_flag = if naive then "--naive" else ""
-  String concat_output_type = if (sites_only) then "v" else "z"
-  String sites_only_command = if (sites_only) then "| bcftools view --no-version -G -Oz" else ""
-  String generate_index_command = if (generate_index) then "tabix ~{outfile_name}" else "touch ~{outfile_name}.tbi"
+  String sites_only_command = if sites_only then "| bcftools view --no-version -G -Oz" else ""
+  String generate_index_command = if generate_index then "tabix ~{outfile_name}" else "touch ~{outfile_name}.tbi"
 
   command <<<
     set -euo pipefail
-    VCFS="~{write_lines(vcfs)}"
     if ~{sort_vcf_list}; then
-      cat $VCFS | awk -F '/' '{print $NF"\t"$0}' | sort -k1,1V | awk '{print $2}' > vcfs.list
+      VCFS=vcfs.list
+      awk -F '/' '{print $NF"\t"$0}' ~{write_lines(vcfs)} | sort -k1,1V | awk '{print $2}' > $VCFS
     else
-      cp $VCFS vcfs.list
+      VCFS="~{write_lines(vcfs)}"
     fi
-    bcftools concat --no-version ~{allow_overlaps_flag} ~{naive_flag} -O~{concat_output_type} --file-list vcfs.list \
+    bcftools concat --no-version ~{allow_overlaps_flag} ~{naive_flag} -Oz --file-list $VCFS \
       ~{sites_only_command} \
       > ~{outfile_name}
     ~{generate_index_command}
@@ -247,12 +244,9 @@ task ConcatBeds {
   # when filtering/sorting/etc, memory usage will likely go up (much of the data will have to
   # be held in memory or disk while working, potentially in a form that takes up more space)
   Float input_size = size(shard_bed_files, "GB")
-  Float compression_factor = 5.0
-  Float base_disk_gb = 5.0
-  Float base_mem_gb = 2.0
   RuntimeAttr runtime_default = object {
     mem_gb: 2.0,
-    disk_gb: ceil(base_disk_gb + input_size * (2.0 + compression_factor)),
+    disk_gb: ceil(10.0 + input_size * 7.0),
     cpu_cores: 1,
     preemptible_tries: 3,
     max_retries: 1,
@@ -317,10 +311,9 @@ task FilesToTarredFolder {
 
   # Since the input files are often/always compressed themselves, assume compression factor for tarring is 1.0
   Float input_size = size(in_files, "GB")
-  Float base_disk_gb = 5.0
   RuntimeAttr runtime_default = object {
     mem_gb: 2.0,
-    disk_gb: ceil(base_disk_gb + input_size * 2.0),
+    disk_gb: ceil(10.0 + input_size * 2.0),
     cpu_cores: 1,
     preemptible_tries: 3,
     max_retries: 1,
@@ -368,10 +361,9 @@ task PasteFiles {
   # when filtering/sorting/etc, memory usage will likely go up (much of the data will have to
   # be held in memory or disk while working, potentially in a form that takes up more space)
   Float input_size = size(input_files, "GB")
-  Float base_disk_gb = 5.0
   RuntimeAttr runtime_default = object {
     mem_gb: 2.0,
-    disk_gb: ceil(base_disk_gb + input_size * 2.0),
+    disk_gb: ceil(10.0 + input_size * 2.0),
     cpu_cores: 1,
     preemptible_tries: 3,
     max_retries: 1,
@@ -547,7 +539,7 @@ task SplitVcf {
   Float input_size = size(vcf, "GB")
   RuntimeAttr runtime_default = object {
     mem_gb: 2.0,
-    disk_gb: ceil(10 + input_size * 30),
+    disk_gb: ceil(10.0 + input_size * 30),
     cpu_cores: 1,
     preemptible_tries: 3,
     max_retries: 1,
@@ -700,11 +692,9 @@ task ShardVidsForClustering {
   }
 
   Float input_size = size(clustered_vcf, "GiB")
-  Float base_disk_gb = 10.0
-  Float input_disk_scale = 1.0
   RuntimeAttr runtime_default = object {
                                   mem_gb: 2.0,
-                                  disk_gb: ceil(base_disk_gb + input_size * input_disk_scale),
+                                  disk_gb: ceil(10.0 + input_size),
                                   cpu_cores: 1,
                                   preemptible_tries: 3,
                                   max_retries: 1,
@@ -969,19 +959,19 @@ task RenameVariantIds {
 task ScatterVcf {
   input {
     File vcf
+    File? vcf_index
     String prefix
     Int records_per_shard
     Int? threads = 1
+    String? contig
     String sv_pipeline_docker
     RuntimeAttr? runtime_attr_override
   }
 
   Float input_size = size(vcf, "GB")
-  Float base_disk_gb = 10.0
-
   RuntimeAttr runtime_default = object {
                                   mem_gb: 3.75,
-                                  disk_gb: ceil(base_disk_gb + input_size * 5.0),
+                                  disk_gb: ceil(10.0 + input_size * 5.0),
                                   cpu_cores: 2,
                                   preemptible_tries: 3,
                                   max_retries: 1,
@@ -1001,14 +991,14 @@ task ScatterVcf {
   command <<<
     set -euo pipefail
     # in case the file is empty create an empty shard
-    bcftools view -h ~{vcf} | bgzip -c > ~{prefix}.0.vcf.gz
-    bcftools +scatter ~{vcf} -o . -O z -p ~{prefix}. --threads ~{threads} -n ~{records_per_shard}
+    bcftools view -h ~{vcf} | bgzip -c > "~{prefix}.0.vcf.gz"
+    bcftools +scatter ~{vcf} -o . -O z -p "~{prefix}". --threads ~{threads} -n ~{records_per_shard} ~{"-r " + contig}
 
-    ls ~{prefix}.*.vcf.gz | sort -k1,1V > vcfs.list
+    ls "~{prefix}".*.vcf.gz | sort -k1,1V > vcfs.list
     i=0
-    while read vcf; do
+    while read VCF; do
       shard_no=`printf %06d $i`
-      mv ${vcf} ~{prefix}.shard_${shard_no}.vcf.gz
+      mv "$VCF" "~{prefix}.shard_${shard_no}.vcf.gz"
       i=$((i+1))
     done < vcfs.list
   >>>
@@ -1040,8 +1030,8 @@ task FixEndsRescaleGQ {
   RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
 
   String outfile = "~{prefix}.vcf.gz"
-  Boolean fix_ends_ = if defined(fix_ends) then fix_ends else true
-  Boolean rescale_gq_ = if defined(rescale_gq) then rescale_gq else true
+  Boolean fix_ends_ = select_first([fix_ends, true])
+  Boolean rescale_gq_ = select_first([rescale_gq, true])
 
   output {
     File out = "~{outfile}"

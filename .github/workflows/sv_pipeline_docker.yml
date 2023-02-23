@@ -3,7 +3,7 @@ name: Docker Images
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'src/**'
       - 'dockerfiles/**'
@@ -11,7 +11,7 @@ on:
       - '.github/workflows/sv_pipeline_docker.yml'
   pull_request:
     branches:
-      - master
+      - main
     paths:
       - 'src/**'
       - 'dockerfiles/**'
@@ -43,7 +43,7 @@ jobs:
         id: commit_sha
         # This action determines the SHA of two commits:
         # - BASE (BASE_SHA): The commit SHA of the base branch (e.g.,
-        #   broadinstitute/gatk-sv:master) which the feature branch targets.
+        #   broadinstitute/gatk-sv:main) which the feature branch targets.
         # - HEAD (HEAD_SHA): The commit SHA of the latest commit on the
         #   feature branch.
         #
@@ -51,7 +51,7 @@ jobs:
         #
         #     	    X---Y---Z     feature
         #          /         \
-        #     A---B---C---D---E   master
+        #     A---B---C---D---E   main
         #
         # 'E' is the merge commit (e.g., 'Merge pull request #0').
         #
@@ -139,7 +139,8 @@ jobs:
           python build_docker.py \
             --base-git-commit ${{ needs.build_args_job.outputs.base_sha }} \
             --current-git-commit ${{ needs.build_args_job.outputs.head_sha }} \
-            --image-tag ${{ needs.build_args_job.outputs.image_tag }}
+            --image-tag ${{ needs.build_args_job.outputs.image_tag }} \
+            --prune-after-each-image
 
   publish_job:
     # This job first configures gcloud with the authentication of a
@@ -154,6 +155,9 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.8']
+    env:
+      DOCKERS_AZURE: "./inputs/values/dockers_azure.json"
+      DOCKERS_GCP: "./inputs/values/dockers.json"
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -202,23 +206,45 @@ jobs:
           sudo mv "$tmp" /etc/docker/daemon.json
           sudo systemctl restart docker.service
 
-      - name: Build and Publish Docker Images
+      - name: Build and Publish Docker Images to GCR
         id: build_and_publish
         run: |
           python ./scripts/docker/build_docker.py \
             --base-git-commit ${{ needs.build_args_job.outputs.base_sha }} \
             --current-git-commit ${{ needs.build_args_job.outputs.head_sha }} \
-            --gcr-project ${{ secrets.GCP_PROJECT_ID }}/gatk-sv \
-            --image-tag ${{ needs.build_args_job.outputs.image_tag }}
-          CHANGED=$(git diff --quiet ./inputs/values/dockers.json || echo True)
+            --docker-repo us.gcr.io/${{ secrets.GCP_PROJECT_ID }}/gatk-sv \
+            --image-tag ${{ needs.build_args_job.outputs.image_tag }} \
+            --input-json $DOCKERS_GCP \
+            --output-json $DOCKERS_GCP
+          
+          CHANGED=$(git diff --quiet $DOCKERS_GCP || echo True)
           echo "::set-output name=CHANGED::$CHANGED"
 
-      - name: Commit Changes to dockers.json
+      - name: Azure login
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.AZ_CR }}
+          username: ${{ secrets.AZ_USERNAME }}
+          password: ${{ secrets.AZ_PASSWORD }}
+
+      - name: Build and Publish Docker Images to ACR
+        run: |
+          python ./scripts/docker/build_docker.py \
+            --base-git-commit ${{ needs.build_args_job.outputs.base_sha }} \
+            --current-git-commit ${{ needs.build_args_job.outputs.head_sha }} \
+            --docker-repo ${{ secrets.AZ_CR }} \
+            --image-tag ${{ needs.build_args_job.outputs.image_tag }} \
+            --input-json $DOCKERS_AZURE \
+            --output-json $DOCKERS_AZURE \
+            --prune-after-each-image \
+            --disable-git-protect
+
+      - name: Commit Changes to dockers_*.json
         if: steps.build_and_publish.outputs.CHANGED
         run: |
           COMMIT_SHA=${{ needs.build_args_job.outputs.head_sha }}
           git config --global user.name 'gatk-sv-bot'
           git config --global user.email '101641599+gatk-sv-bot@users.noreply.github.com'
-          git commit ./inputs/values/dockers.json -m "Update docker images list, triggered by "${COMMIT_SHA::8}
-          git pull --rebase origin master
+          git commit $DOCKERS_AZURE $DOCKERS_GCP -m "Update docker images list, triggered by "${COMMIT_SHA::8}
+          git pull --rebase origin main
           git push
