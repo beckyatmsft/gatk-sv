@@ -150,7 +150,7 @@ task RenameBenchmarkTarfileSamples {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
     docker: sv_base_mini_docker
-    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
     preemptible: true
     maxRetries: 3
   }

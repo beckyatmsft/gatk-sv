@@ -93,7 +93,8 @@ task SVAnnotate {
     disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
     bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
     docker: gatk_docker
-    preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-    maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+    disk: select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
     }
 }
