@@ -149,11 +149,10 @@ task RenameBenchmarkTarfileSamples {
   runtime {
     cpu: select_first([runtime_attr.cpu_cores, default_attr.cpu_cores])
     memory: select_first([runtime_attr.mem_gb, default_attr.mem_gb]) + " GiB"
-    disks: "local-disk " + select_first([runtime_attr.disk_gb, default_attr.disk_gb]) + " HDD"
-    bootDiskSizeGb: select_first([runtime_attr.boot_disk_gb, default_attr.boot_disk_gb])
     docker: sv_base_mini_docker
-    preemptible: select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-    maxRetries: select_first([runtime_attr.max_retries, default_attr.max_retries])
+    disk: select_first([runtime_override.disk_gb, runtime_default.disk_gb]) + " GB"
+    preemptible: true
+    maxRetries: 3
   }
 }
 
@@ -187,12 +186,11 @@ task BenchmarkSamples {
   RuntimeAttr runtime_override = select_first([runtime_attr_override, runtime_default])
   runtime {
     memory: "~{select_first([runtime_override.mem_gb, runtime_default.mem_gb])} GiB"
-    disks: "local-disk ~{select_first([runtime_override.disk_gb, runtime_default.disk_gb])} HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_pipeline_qc_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: "~select_first([runtime_override.disk_gb, runtime_default.disk_gb]) GB"
+    preemptible: true
+    maxRetries: 3
   }
 
   command <<<
@@ -245,12 +243,11 @@ task MergeTarballs {
   RuntimeAttr runtime_override = select_first([runtime_attr_override, runtime_default])
   runtime {
     memory: "~{select_first([runtime_override.mem_gb, runtime_default.mem_gb])} GB"
-    disks: "local-disk ~{select_first([runtime_override.disk_gb, runtime_default.disk_gb])} HDD"
     cpu: select_first([runtime_override.cpu_cores, runtime_default.cpu_cores])
-    preemptible: select_first([runtime_override.preemptible_tries, runtime_default.preemptible_tries])
-    maxRetries: select_first([runtime_override.max_retries, runtime_default.max_retries])
     docker: sv_base_mini_docker
-    bootDiskSizeGb: select_first([runtime_override.boot_disk_gb, runtime_default.boot_disk_gb])
+    disk: "~select_first([runtime_override.disk_gb, runtime_default.disk_gb]) GB"
+    preemptible: true
+    maxRetries: 3
   }
 
   command <<<
